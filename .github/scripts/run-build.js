@@ -1,0 +1,51 @@
+module.exports = async (scripts) => {
+  const { github, context, core, glob, io, exec, fetch, require } = scripts;
+
+  const package = RegExp(`^packages/(?<p>[\\w-]+)$`).exec(context.payload.label.name).groups['p'];
+  const version = RegExp(`^${package}-v?(?<v>[\\d.]+)$`).exec(context.payload.pull_request.head.ref).groups['v'];
+  const runtime = require('.github/scripts/runtime.js')(scripts);
+  const namespaces = ['docker.io/fangzhengjin', 'ghcr.io/containers-actions'];
+  const tags = [];
+  for (const ns of namespaces) {
+    tags.push(`--tag=${ns}/${package}:${version}`);
+    tags.push(`--tag=${ns}/${package}:latest`);
+  }
+  let dockerfile = runtime.readDockerfile(package);
+  const baseImage = RegExp(`^FROM\\s+(?<baseImage>.*)\\s+$`, 'm').exec(dockerfile).groups['baseImage'];
+  const annotations = runtime.getImageAnnotation(package, version, {
+    'org.opencontainers.image.base.name': baseImage,
+  });
+
+  const labelArgs = Object.keys(annotations).map((key) => `--label=${key}=${annotations[key]}`);
+  const annotationArgs = Object.keys(annotations).map((key) => `annotation-index.${key}=${annotations[key]}`);
+
+  await exec.exec('docker', [
+    'buildx',
+    'build',
+    '--provenance=false',
+    `--platform=${runtime.readBuildPlatform(package).join(',')}`,
+    ...tags,
+    ...labelArgs,
+    `--output=type=image,${annotationArgs.join(',')}`,
+    context.payload.label.name,
+    '--push',
+  ]);
+
+  if (
+    await runtime.createIssueComment(
+      context.payload.number,
+      `
+Package build success 🎉
+Platform: \`${runtime.readBuildPlatform(package).join(',')}\`
+You can find it here:
+\`\`\`
+${namespaces.map((ns) => `${ns}/${package}:${version}`).join('\n')}
+\`\`\`
+  `
+    )
+  ) {
+    if (await runtime.mergePullRequestSquash(context.payload.number)) {
+      await runtime.deleteBranch(context.payload.pull_request.head.ref);
+    }
+  }
+};
