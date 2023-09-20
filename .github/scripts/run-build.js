@@ -46,6 +46,7 @@ ${namespaces.map((ns) => `${ns}/${package}:${version}`).join('\n')}
     )
   ) {
     if (await runtime.mergePullRequestSquash(context.payload.number)) {
+      await runtime.sleep(5000);
       await runtime.deleteBranch(context.payload.pull_request.head.ref);
     }
   }
