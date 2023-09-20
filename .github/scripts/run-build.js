@@ -20,7 +20,7 @@ module.exports = async (scripts) => {
   const labelArgs = Object.keys(annotations).map((key) => `--label=${key}=${annotations[key]}`);
   const annotationArgs = Object.keys(annotations).map((key) => `annotation-index.${key}=${annotations[key]}`);
 
-  const args = ['buildx', 'build', '-provenance=false'];
+  const args = ['buildx', 'build', '--provenance=false'];
   args.push(`--platform=${platformArgs.join(',')}`);
   tags.forEach((x) => args.push(x));
   labelArgs.forEach((x) => args.push(x));
