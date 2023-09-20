@@ -2,7 +2,7 @@ module.exports = async (scripts) => {
   const { github, context, core, glob, io, exec, fetch, require } = scripts;
 
   const package = RegExp(`^packages/(?<p>[\\w-]+)$`, 'gm').exec(context.payload.label.name).groups['p'];
-  const version = RegExp(`^${package}-v?(?<v>.*)$`, 'gm').exec(context.payload.pull_request.head.ref).groups['v'];
+  const version = RegExp(`^${package}/v?(?<v>.*)$`, 'gm').exec(context.payload.pull_request.head.ref).groups['v'];
   const runtime = require('.github/scripts/runtime.js')(scripts);
   const namespaces = ['docker.io/fangzhengjin', 'ghcr.io/containers-actions'];
   const tags = [];
@@ -25,7 +25,7 @@ module.exports = async (scripts) => {
   tags.forEach((x) => args.push(x));
   labelArgs.forEach((x) => args.push(x));
   if (platformArgs.length > 1) {
-    args.push(`--output=type=image,${platformArgs.join(',')}`);
+    args.push(`--output=type=image,${annotationArgs.join(',')}`);
   }
   args.push(context.payload.label.name);
   args.push('--push');
