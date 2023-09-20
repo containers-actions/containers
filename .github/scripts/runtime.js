@@ -1,7 +1,9 @@
 module.exports = (scripts) => {
   const { github, context, core, glob, io, exec, fetch, require } = scripts;
   const fs = require('fs');
+  const semver = require('semver');
   const actions = {
+    // ============================== Common ==============================
     sleep: async (ms) => {
       return new Promise((resolve) => setTimeout(resolve, ms));
     },
@@ -82,6 +84,13 @@ module.exports = (scripts) => {
     getLatestRelease: async ({ owner, repo }) => {
       return (await github.rest.repos.getLatestRelease({ owner, repo })).data.name;
     },
+    // ============================== Reference ==============================
+    getRef: async (ref) => {
+      return (await github.rest.git.getRef({ ...context.repo, ref })).data;
+    },
+    getBranch: async (branch) => {
+      return await actions.getRef(`heads/${branch}`);
+    },
     /**
      * 创建新分支
      *
@@ -89,12 +98,12 @@ module.exports = (scripts) => {
      * @param {string} newBranch    新分支名
      * @returns {boolean}           是否创建成功
      */
-    createNewBranch: async (originBranch, newBranch) => {
+    createBranch: async (originBranch, newBranch) => {
       try {
-        await github.rest.git.getRef({ ...context.repo, ref: `heads/${newBranch}` });
+        await actions.getBranch(newBranch);
       } catch (error) {
         if (error.status === 404) {
-          const originRef = await github.rest.git.getRef({ ...context.repo, ref: `heads/${originBranch}` });
+          const originRef = await actions.getBranch(originBranch);
           const newRef = await github.rest.git.createRef({
             ...context.repo,
             ref: `refs/heads/${newBranch}`,
@@ -105,25 +114,32 @@ module.exports = (scripts) => {
       }
       return false;
     },
-    /**
-     * 创建一个GitHub上的Pull Request
-     *
-     * @param {string} formBranch Pull Request的来源分支
-     * @param {string} toBranch   Pull Request的目标分支
-     * @param {string} title      Pull Request的标题
-     * @param {string} body       Pull Request的内容
-     * @return {boolean}          是否创建成功
-     */
-    createPullRequest: async (formBranch, toBranch, title, body) => {
-      return await github.rest.pulls.create({
-        ...context.repo,
-        head: formBranch,
-        base: toBranch,
-        title,
-        body,
-        maintainer_can_modify: true,
-      });
+    deleteRef: async (ref) => {
+      const result = await github.rest.git.deleteRef({ ...context.repo, ref });
+      return result.status === 204;
     },
+    deleteBranch: async (branch) => await actions.deleteRef(`heads/${branch}`),
+    deleteTag: async (tag) => await actions.deleteRef(`tags/${tag}`),
+    // ============================== Label ==============================
+    listLabelsOnIssue: async (issueNumber) => {
+      return (await github.rest.issues.listLabelsOnIssue({ ...context.repo, issue_number: issueNumber })).data;
+    },
+    listLabelsForRepo: async () => {
+      return (await github.rest.issues.listLabelsForRepo({ ...context.repo })).data || [];
+    },
+    createLabel: async (name, color) => {
+      return (await github.rest.issues.createLabel({ ...context.repo, name, color })).status === 201;
+    },
+    setLabels: async (issueNumber, labels) => {
+      const repoLabels = (await actions.listLabelsForRepo()).map((x) => x.name);
+      labels.forEach(async (label) => {
+        if (!repoLabels.includes(label)) {
+          await actions.createLabel(label, 'FBCA04');
+        }
+      });
+      return await github.rest.issues.setLabels({ ...context.repo, issue_number: issueNumber, labels });
+    },
+    // ============================== Repo ==============================
     /**
      * 从GitHub仓库中获取文件的内容
      *
@@ -153,26 +169,37 @@ module.exports = (scripts) => {
       });
       return result.status === 200 || result.status === 201;
     },
-    listLabelsOnIssue: async (issueNumber) => {
-      return (await github.rest.issues.listLabelsOnIssue({ ...context.repo, issue_number: issueNumber })).data;
-    },
-    listLabelsForRepo: async () => {
-      return (await github.rest.issues.listLabelsForRepo({ ...context.repo })).data || [];
-    },
-    createLabel: async (name, color) => {
-      return (await github.rest.issues.createLabel({ ...context.repo, name, color })).status === 201;
-    },
-    setLabels: async (issueNumber, labels) => {
-      const repoLabels = (await actions.listLabelsForRepo()).map((x) => x.name);
-      labels.forEach(async (label) => {
-        if (!repoLabels.includes(label)) {
-          await actions.createLabel(label, 'FBCA04');
-        }
+    // ============================== Issue / PullRequest ==============================
+    /**
+     * 创建一个GitHub上的Pull Request
+     *
+     * @param {string} formBranch Pull Request的来源分支
+     * @param {string} toBranch   Pull Request的目标分支
+     * @param {string} title      Pull Request的标题
+     * @param {string} body       Pull Request的内容
+     * @return {boolean}          是否创建成功
+     */
+    createPullRequest: async (formBranch, toBranch, title, body) => {
+      return await github.rest.pulls.create({
+        ...context.repo,
+        head: formBranch,
+        base: toBranch,
+        title,
+        body,
+        maintainer_can_modify: true,
       });
-      return await github.rest.issues.setLabels({ ...context.repo, issue_number: issueNumber, labels });
     },
+    createIssueComment: async (issueNumber, comment) => {
+      const result = await github.rest.issues.createComment({
+        ...context.repo,
+        issue_number: issueNumber,
+        body: comment,
+      });
+      return result.status === 201;
+    },
+    // ============================== Remix ==============================
     autoPullRequest: async (newBranch, package, version, uploadCallback) => {
-      if ((await actions.createNewBranch('main', newBranch)) && (await uploadCallback())) {
+      if ((await actions.createBranch('main', newBranch)) && (await uploadCallback())) {
         const title = `Upgrade ${package} version to ${version}`;
         const prInfo = await actions.createPullRequest(newBranch, 'main', title, title);
         if (prInfo.status === 201) {
@@ -195,28 +222,15 @@ module.exports = (scripts) => {
         }
       }
     },
-    deleteRef: async (ref) => {
-      const result = await github.rest.git.deleteRef({ ...context.repo, ref });
-      return result.status === 204;
-    },
-    deleteBranch: async (branch) => await actions.deleteRef(`heads/${branch}`),
-    deleteTag: async (tag) => await actions.deleteRef(`tags/${tag}`),
-    createIssueComment: async (issueNumber, comment) => {
-      const result = await github.rest.issues.createComment({
-        ...context.repo,
-        issue_number: issueNumber,
-        body: comment,
-      });
-      return result.status === 201;
-    },
     uploadFileAndCreatePullRequest: async (package, latestVersion, uploadPath, content) => {
-      const newBranch = `${package}-${latestVersion}`;
-      await actions.autoPullRequest(newBranch, package, latestVersion, async () => {
+      const newLatestVersion = semver.clean(latestVersion, { loose: true });
+      const newBranch = `${package}/${newLatestVersion}`;
+      await actions.autoPullRequest(newBranch, package, newLatestVersion, async () => {
         return await actions.updateFile(
           newBranch,
           uploadPath,
           content,
-          `Update ${package} version to ${latestVersion}`
+          `Update ${package} version to ${newLatestVersion}`
         );
       });
     },
