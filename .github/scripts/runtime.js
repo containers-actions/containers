@@ -11,8 +11,12 @@ module.exports = (scripts) => {
       core.info(`┃${blank}${str}${blank}┃`);
       core.info(`┗${'━'.repeat(width - 2)}┛`);
     },
+    getVersion: (key, content) => {
+      const regex = new RegExp(`(${key})="?(?<version>v?[\\d\\w.+-]+)"?`, 'gm');
+      return regex.exec(content).groups['version'];
+    },
     replaceVersion: (keys, version, content) => {
-      const regex = new RegExp(`(${keys.join('|')})="(v?[\\d.]+)"`, 'g');
+      const regex = new RegExp(`(${keys.join('|')})="?(v?[\\d\\w.+-]+)"?`, 'gm');
       return content.replace(regex, `$1="${version}"`);
     },
     /**
