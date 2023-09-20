@@ -4,16 +4,11 @@ on:
     types:
       - labeled
 permissions: {}
-#concurrency:
-#  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
 jobs:
   packages-pr-checks:
     if: startsWith(github.event.label.name, 'packages/')
     runs-on: ubuntu-latest
     name: packages-pr-checks
-    permissions:
-      contents: read
-      pull-requests: write
     steps:
       - uses: actions/checkout@v4
         with:
