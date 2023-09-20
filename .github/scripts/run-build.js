@@ -1,8 +1,8 @@
 module.exports = async (scripts) => {
   const { github, context, core, glob, io, exec, fetch, require } = scripts;
 
-  const package = RegExp(`^packages/(?<p>[\\w-]+)$`).exec(context.payload.label.name).groups['p'];
-  const version = RegExp(`^${package}-v?(?<v>[\\d.]+)$`).exec(context.payload.pull_request.head.ref).groups['v'];
+  const package = RegExp(`^packages/(?<p>[\\w-]+)$`, 'gm').exec(context.payload.label.name).groups['p'];
+  const version = RegExp(`^${package}-v?(?<v>[\\d.]+)$`, 'gm').exec(context.payload.pull_request.head.ref).groups['v'];
   const runtime = require('.github/scripts/runtime.js')(scripts);
   const namespaces = ['docker.io/fangzhengjin', 'ghcr.io/containers-actions'];
   const tags = [];
@@ -11,7 +11,7 @@ module.exports = async (scripts) => {
     tags.push(`--tag=${ns}/${package}:latest`);
   }
   let dockerfile = runtime.readDockerfile(package);
-  const baseImage = RegExp(`^FROM\\s+(?<baseImage>.*)\\s+$`, 'm').exec(dockerfile).groups['baseImage'];
+  const baseImage = RegExp(`^FROM\\s+(?<baseImage>.*)\\s+$`, 'gm').exec(dockerfile).groups['baseImage'];
   const annotations = runtime.getImageAnnotation(package, version, {
     'org.opencontainers.image.base.name': baseImage,
   });
