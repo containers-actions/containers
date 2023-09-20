@@ -16,6 +16,7 @@ module.exports = async (scripts) => {
     'org.opencontainers.image.base.name': baseImage,
   });
 
+  const platformArgs = runtime.readBuildPlatform(package);
   const labelArgs = Object.keys(annotations).map((key) => `--label=${key}=${annotations[key]}`);
   const annotationArgs = Object.keys(annotations).map((key) => `annotation-index.${key}=${annotations[key]}`);
 
@@ -23,10 +24,10 @@ module.exports = async (scripts) => {
     'buildx',
     'build',
     '--provenance=false',
-    `--platform=${runtime.readBuildPlatform(package).join(',')}`,
+    `--platform=${platformArgs.join(',')}`,
     ...tags,
     ...labelArgs,
-    `--output=type=image,${annotationArgs.join(',')}`,
+    platformArgs.length > 1 ? `--output=type=image,${platformArgs.join(',')}` : '',
     context.payload.label.name,
     '--push',
   ]);
