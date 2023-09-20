@@ -224,7 +224,7 @@ module.exports = (scripts) => {
     },
     uploadFileAndCreatePullRequest: async (package, latestVersion, uploadPath, content) => {
       const newLatestVersion = semver.clean(latestVersion, { loose: true });
-      const newBranch = `${package}/${newLatestVersion}`;
+      const newBranch = `${package}-${newLatestVersion}`;
       await actions.autoPullRequest(newBranch, package, newLatestVersion, async () => {
         return await actions.updateFile(
           newBranch,
