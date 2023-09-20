@@ -20,17 +20,17 @@ module.exports = async (scripts) => {
   const labelArgs = Object.keys(annotations).map((key) => `--label=${key}=${annotations[key]}`);
   const annotationArgs = Object.keys(annotations).map((key) => `annotation-index.${key}=${annotations[key]}`);
 
-  await exec.exec('docker', [
-    'buildx',
-    'build',
-    '--provenance=false',
-    `--platform=${platformArgs.join(',')}`,
-    ...tags,
-    ...labelArgs,
-    platformArgs.length > 1 ? `--output=type=image,${platformArgs.join(',')}` : '',
-    context.payload.label.name,
-    '--push',
-  ]);
+  const args = ['buildx', 'build', '-provenance=false'];
+  args.push(`--platform=${platformArgs.join(',')}`);
+  tags.forEach((x) => args.push(x));
+  labelArgs.forEach((x) => args.push(x));
+  if (platformArgs.length > 1) {
+    args.push(`--output=type=image,${platformArgs.join(',')}`);
+  }
+  args.push(context.payload.label.name);
+  args.push('--push');
+
+  await exec.exec('docker', args);
 
   if (
     await runtime.createIssueComment(
