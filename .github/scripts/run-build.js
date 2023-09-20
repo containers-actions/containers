@@ -25,7 +25,7 @@ module.exports = async (scripts) => {
   tags.forEach((x) => args.push(x));
   labelArgs.forEach((x) => args.push(x));
   if (platformArgs.length > 1) {
-    args.push(`--output=type=image,${platformArgs.join(',')}`);
+    args.push(`--output=type=image,${annotationArgs.join(',')}`);
   }
   args.push(context.payload.label.name);
   args.push('--push');
