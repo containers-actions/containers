@@ -7,7 +7,7 @@ module.exports = async ({
   const response = await fetch('https://packages.debian.org/bookworm/subversion');
   const html = await response.text();
   const $ = cheerio.load(html);
-  const latestVersion = $($('.vcurrent')[0]).text().get();
+  const latestVersion = $($('.vcurrent')[0]).text().trim();
 
   let dockerfile = runtime.readDockerfile(package);
   const currentVersion = runtime.getVersion('SUBVERSION_VERSION', dockerfile);
