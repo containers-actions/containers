@@ -16,20 +16,21 @@ module.exports = async (scripts) => {
     'org.opencontainers.image.base.name': baseImage,
   });
 
+  const platformArgs = runtime.readBuildPlatform(package);
   const labelArgs = Object.keys(annotations).map((key) => `--label=${key}=${annotations[key]}`);
   const annotationArgs = Object.keys(annotations).map((key) => `annotation-index.${key}=${annotations[key]}`);
 
-  await exec.exec('docker', [
-    'buildx',
-    'build',
-    '--provenance=false',
-    `--platform=${runtime.readBuildPlatform(package).join(',')}`,
-    ...tags,
-    ...labelArgs,
-    `--output=type=image,${annotationArgs.join(',')}`,
-    context.payload.label.name,
-    '--push',
-  ]);
+  const args = ['buildx', 'build', '--provenance=false'];
+  args.push(`--platform=${platformArgs.join(',')}`);
+  tags.forEach((x) => args.push(x));
+  labelArgs.forEach((x) => args.push(x));
+  if (platformArgs.length > 1) {
+    args.push(`--output=type=image,${platformArgs.join(',')}`);
+  }
+  args.push(context.payload.label.name);
+  args.push('--push');
+
+  await exec.exec('docker', args);
 
   if (
     await runtime.createIssueComment(
