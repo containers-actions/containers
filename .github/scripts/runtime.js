@@ -86,18 +86,20 @@ module.exports = (scripts) => {
      * @returns {boolean}           是否创建成功
      */
     createNewBranch: async (originBranch, newBranch) => {
-      const searchRef = await github.rest.git.getRef({ ...context.repo, ref: `heads/${newBranch}` }).catch((e) => e);
-      if (searchRef.status === 404) {
-        const originRef = await github.rest.git.getRef({ ...context.repo, ref: `heads/${originBranch}` });
-        const newRef = await github.rest.git.createRef({
-          ...context.repo,
-          ref: `refs/heads/${newBranch}`,
-          sha: originRef.data.object.sha,
-        });
-        return true;
-      } else {
-        return false;
+      try {
+        await github.rest.git.getRef({ ...context.repo, ref: `heads/${newBranch}` });
+      } catch (error) {
+        if (error.status === 404) {
+          const originRef = await github.rest.git.getRef({ ...context.repo, ref: `heads/${originBranch}` });
+          const newRef = await github.rest.git.createRef({
+            ...context.repo,
+            ref: `refs/heads/${newBranch}`,
+            sha: originRef.data.object.sha,
+          });
+          return true;
+        }
       }
+      return false;
     },
     /**
      * 创建一个GitHub上的Pull Request
