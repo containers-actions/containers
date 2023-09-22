@@ -65,7 +65,11 @@ module.exports = async ({
   if (sortedIndex != 0) {
     const latestVersion = sortedVersions[sortedIndex - 1];
     dockerfile = runtime.replaceVariable('MATLAB_RUNTIME_VERSION', latestVersion, dockerfile);
-    dockerfile = runtime.replaceVariable('MATLAB_RUNTIME_INSTALL_PARAMS', versions[latestVersion].url, dockerfile);
+    dockerfile = runtime.replaceVariable(
+      'MATLAB_RUNTIME_INSTALL_PARAMS',
+      versions[latestVersion].installParam,
+      dockerfile
+    );
     dockerfile = runtime.replaceVariable('MATLAB_RUNTIME_DOWNLOAD_URL', versions[latestVersion].url, dockerfile);
     dockerfile = runtime.replaceVariable('LD_LIBRARY_PATH', versions[latestVersion].ldLibraryPath, dockerfile);
     await runtime.uploadFileAndCreatePullRequest(package, latestVersion, `${path}/Dockerfile`, dockerfile);
