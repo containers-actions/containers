@@ -18,8 +18,8 @@ module.exports = (scripts) => {
       return regex.exec(content).groups['version'];
     },
     replaceVariable: (key, value, content) => {
-      const regex = new RegExp(`^(\\w+\\s+)?(${key})="?([^"]+)"?(\\s+\\\\)?\\s*$`, 'gm');
-      return content.replace(regex, `$1$2="${value}"`);
+      const regex = new RegExp(`^(\\w*\\s*)(${key})="?([^"]+)"?(\\s*\\\\)?\\s*$`, 'gm');
+      return content.replace(regex, `$1$2="${value}$4"`);
     },
     /**
      * 获取指定密钥名称的秘密值
