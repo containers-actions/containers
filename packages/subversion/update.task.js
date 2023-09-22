@@ -4,7 +4,7 @@ module.exports = async ({
   runtime,
 }) => {
   const cheerio = require('cheerio');
-  const response = await fetch('https://packages.debian.org/bookworm/subversion');
+  let response = await runtime.retryFetch('https://packages.debian.org/bookworm/subversion');
   const html = await response.text();
   const $ = cheerio.load(html);
   const latestVersion = $($('.vcurrent')[0]).text().trim();

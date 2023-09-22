@@ -4,6 +4,18 @@ module.exports = (scripts) => {
   const semver = require('semver');
   const actions = {
     // ============================== Common ==============================
+    retryFetch: async (url, options = {}, maxRetry = 5, retryInterval = 1000) => {
+      for (let i = 0; i < maxRetry; i++) {
+        try {
+          return await fetch(url, options);
+        } catch (e) {
+          core.info(`[url] 正在进行第[${i + 1}]次重试`);
+          if (i !== maxRetry - 1) {
+            await actions.sleep(retryInterval);
+          }
+        }
+      }
+    },
     sleep: async (ms) => {
       return new Promise((resolve) => setTimeout(resolve, ms));
     },

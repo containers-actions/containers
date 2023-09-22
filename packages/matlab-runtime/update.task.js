@@ -7,7 +7,7 @@ module.exports = async ({
   const currentVersion = runtime.getVersion('MATLAB_RUNTIME_VERSION', dockerfile);
 
   const semver = require('semver');
-  const response = await fetch('https://www.mathworks.com/products/compiler/matlab-runtime.html');
+  const response = await runtime.retryFetch('https://www.mathworks.com/products/compiler/matlab-runtime.html');
   const html = await response.text();
   const versions = {};
   const patchVersion = {};
