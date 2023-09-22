@@ -13,7 +13,7 @@ module.exports = async ({
   const currentVersion = runtime.getVersion('SUBVERSION_VERSION', dockerfile);
 
   if (currentVersion != latestVersion) {
-    dockerfile = runtime.replaceVersion(['SUBVERSION_VERSION'], latestVersion, dockerfile);
+    dockerfile = runtime.replaceVariable('SUBVERSION_VERSION', latestVersion, dockerfile);
     await runtime.uploadFileAndCreatePullRequest(package, latestVersion, `${path}/Dockerfile`, dockerfile);
     return latestVersion;
   }

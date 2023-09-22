@@ -17,9 +17,9 @@ module.exports = (scripts) => {
       const regex = new RegExp(`(${key})="?(?<version>v?[\\d\\w.+-]+)"?`, 'gm');
       return regex.exec(content).groups['version'];
     },
-    replaceVersion: (keys, version, content) => {
-      const regex = new RegExp(`(${keys.join('|')})="?(v?[\\d\\w.+-]+)"?`, 'gm');
-      return content.replace(regex, `$1="${version}"`);
+    replaceVariable: (key, value, content) => {
+      const regex = new RegExp(`^(\\w+\\s+)?(${key})="?([^"]+)"?(\\s+\\\\)?\\s*$`, 'gm');
+      return content.replace(regex, `$1$2="${value}"`);
     },
     /**
      * 获取指定密钥名称的秘密值
