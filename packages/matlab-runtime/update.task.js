@@ -3,6 +3,9 @@ module.exports = async ({
   scripts: { github, context, core, glob, io, exec, fetch, require },
   runtime,
 }) => {
+  let dockerfile = runtime.readDockerfile(package);
+  const currentVersion = runtime.getVersion('MATLAB_RUNTIME_VERSION', dockerfile);
+
   const semver = require('semver');
   const response = await fetch('https://www.mathworks.com/products/compiler/matlab-runtime.html');
   const html = await response.text();
@@ -44,7 +47,7 @@ module.exports = async ({
     }
   }
   const sortedVersions = semver.rsort(Object.keys(versions));
-  const sortedIndex = sortedVersions.indexOf('2022.9.12-7');
+  const sortedIndex = sortedVersions.indexOf(currentVersion);
   if (sortedIndex != 0) {
     const latestVersion = sortedVersions[sortedIndex - 1];
     dockerfile = runtime.replaceVariable('MATLAB_RUNTIME_VERSION', latestVersion, dockerfile);
