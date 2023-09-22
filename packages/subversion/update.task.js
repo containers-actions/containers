@@ -4,7 +4,7 @@ module.exports = async ({
   runtime,
 }) => {
   const cheerio = require('cheerio');
-  const response = await fetch('https://packages.debian.org/bookworm/subversion');
+  let response = await runtime.retryFetch('https://packages.debian.org/bookworm/subversion');
   const html = await response.text();
   const $ = cheerio.load(html);
   const latestVersion = $($('.vcurrent')[0]).text().trim();
@@ -13,7 +13,7 @@ module.exports = async ({
   const currentVersion = runtime.getVersion('SUBVERSION_VERSION', dockerfile);
 
   if (currentVersion != latestVersion) {
-    dockerfile = runtime.replaceVersion(['SUBVERSION_VERSION'], latestVersion, dockerfile);
+    dockerfile = runtime.replaceVariable('SUBVERSION_VERSION', latestVersion, dockerfile);
     await runtime.uploadFileAndCreatePullRequest(package, latestVersion, `${path}/Dockerfile`, dockerfile);
     return latestVersion;
   }

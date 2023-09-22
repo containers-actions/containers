@@ -6,13 +6,8 @@ module.exports = async ({
   const semver = require('semver');
   const cheerio = require('cheerio');
   let dockerfile = runtime.readDockerfile(package);
-  const regex = /LIBRE_OFFICE_VERSION="([\d.]+)"/g;
-  const result = regex.exec(dockerfile);
-  if (result == null || result.length < 2) {
-    return;
-  }
-  const currentVersion = result[1];
-  const response = await fetch('https://www.libreoffice.org/download/download-libreoffice');
+  const currentVersion = runtime.getVersion('LIBRE_OFFICE_VERSION', dockerfile);
+  const response = await runtime.retryFetch('https://www.libreoffice.org/download/download-libreoffice');
   const html = await response.text();
   const $ = cheerio.load(html);
   const latestVersion = semver.minSatisfying(
@@ -22,7 +17,7 @@ module.exports = async ({
     '*'
   );
   if (semver.lt(currentVersion, latestVersion)) {
-    dockerfile = runtime.replaceVersion(['LIBRE_OFFICE_VERSION'], latestVersion, dockerfile);
+    dockerfile = runtime.replaceVariable('LIBRE_OFFICE_VERSION', latestVersion, dockerfile);
     dockerfile = dockerfile.replace(
       /KK_OFFICE_HOME="\/opt\/libreoffice([\d.]+)"/g,
       `KK_OFFICE_HOME="/opt/libreoffice${semver.major(latestVersion)}.${semver.minor(latestVersion)}"`

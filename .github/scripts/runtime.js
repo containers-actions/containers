@@ -4,6 +4,18 @@ module.exports = (scripts) => {
   const semver = require('semver');
   const actions = {
     // ============================== Common ==============================
+    retryFetch: async (url, options = {}, maxRetry = 5, retryInterval = 1000) => {
+      for (let i = 0; i < maxRetry; i++) {
+        try {
+          return await fetch(url, options);
+        } catch (e) {
+          core.info(`[url] 正在进行第[${i + 1}]次重试`);
+          if (i !== maxRetry - 1) {
+            await actions.sleep(retryInterval);
+          }
+        }
+      }
+    },
     sleep: async (ms) => {
       return new Promise((resolve) => setTimeout(resolve, ms));
     },
@@ -17,9 +29,9 @@ module.exports = (scripts) => {
       const regex = new RegExp(`(${key})="?(?<version>v?[\\d\\w.+-]+)"?`, 'gm');
       return regex.exec(content).groups['version'];
     },
-    replaceVersion: (keys, version, content) => {
-      const regex = new RegExp(`(${keys.join('|')})="?(v?[\\d\\w.+-]+)"?`, 'gm');
-      return content.replace(regex, `$1="${version}"`);
+    replaceVariable: (key, value, content) => {
+      const regex = new RegExp(`^(\\w*\\s*)(${key})="?([^"]+)"?(\\s*\\\\)?\\s*$`, 'gm');
+      return content.replace(regex, `$1$2="${value}"$4`);
     },
     /**
      * 获取指定密钥名称的秘密值
