@@ -35,7 +35,7 @@ module.exports = async ({
       const v3 = patchVersion[v1];
       const version = `${/(?<v>\d+)/.exec(v1).groups['v']}.${v2}-${v3}`;
       versions[version] = {
-        url: `https://ssd.mathworks.com/supportfiles/downloads/${v1}/Release/${v3}/deployment_files/installer/complete/glnxa64/MATLAB_Runtime_${
+        url: `https://ssd.mathworks.com/supportfiles/downloads/${v1}/Release/${v3}/deployment_files/installer/complete/glnxa64/MATLAB_Runtime_${v1}_${
           v3 == '0' ? '' : `Update_${v3}_`
         }glnxa64.zip`,
         v1Raw: v1, // R2023a
