@@ -47,7 +47,10 @@ module.exports = async ({
     }
   }
   const sortedVersions = semver.rsort(Object.keys(versions));
-  const sortedIndex = sortedVersions.indexOf(currentVersion);
+  let sortedIndex = sortedVersions.indexOf(currentVersion);
+  if (sortedIndex == -1) {
+    sortedIndex = sortedVersions.length;
+  }
   if (sortedIndex != 0) {
     const latestVersion = sortedVersions[sortedIndex - 1];
     dockerfile = runtime.replaceVariable('MATLAB_RUNTIME_VERSION', latestVersion, dockerfile);
