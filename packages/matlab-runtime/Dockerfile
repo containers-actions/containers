@@ -1,6 +1,6 @@
 FROM bitnami/java:20
 
-ENV MATLAB_RUNTIME_VERSION="2020.9.9-8" \
+ENV MATLAB_RUNTIME_VERSION="2021.9.11-7"
     MATLAB_RUNTIME_DOWNLOAD_URL="init" \
     LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/MATLAB_Runtime/v99/runtime/glnxa64:/MATLAB_Runtime/v99/bin/glnxa64:/MATLAB_Runtime/v99/sys/os/glnxa64:/MATLAB_Runtime/v99/extern/bin/glnxa64"
 
