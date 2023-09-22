@@ -21,7 +21,7 @@ module.exports = async ({
   }
 
   const getLdLibraryPath = (version) => {
-    const ldLibraryPaths = ['${LD_LIBRARY_PATH}'];
+    const ldLibraryPaths = [];
     ldLibraryPaths.push(`/MATLAB_Runtime/v${version}/runtime/glnxa64`);
     ldLibraryPaths.push(`/MATLAB_Runtime/v${version}/bin/glnxa64`);
     ldLibraryPaths.push(`/MATLAB_Runtime/v${version}/sys/os/glnxa64`);

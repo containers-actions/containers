@@ -20,9 +20,13 @@ module.exports = (scripts) => {
       return new Promise((resolve) => setTimeout(resolve, ms));
     },
     printlnWarpText: (str, width = 52) => {
+      let context = str;
+      if (str.length % 2 == 1) {
+        context += ' ';
+      }
       core.info(`┏${'━'.repeat(width - 2)}┓`);
-      let blank = ' '.repeat((width - 2) / 2 - Math.floor(str.length / 2));
-      core.info(`┃${blank}${str}${blank}┃`);
+      let blank = ' '.repeat((width - 2) / 2 - context.length / 2);
+      core.info(`┃${blank}${context}${blank}┃`);
       core.info(`┗${'━'.repeat(width - 2)}┛`);
     },
     getVersion: (key, content) => {
@@ -30,7 +34,7 @@ module.exports = (scripts) => {
       return regex.exec(content).groups['version'];
     },
     replaceVariable: (key, value, content) => {
-      const regex = new RegExp(`^(\\w*\\s*)(${key})="?([^"]+)"?(\\s*\\\\)?\\s*$`, 'gm');
+      const regex = new RegExp(`^(\\w*\\s*)(${key})="?([^"]+)"?(\\s*\\\\)?[^\\S\\n]*$`, 'gm');
       return content.replace(regex, `$1$2="${value}"$4`);
     },
     /**
