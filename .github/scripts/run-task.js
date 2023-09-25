@@ -20,7 +20,11 @@ module.exports = async (scripts, patterns) => {
       runtime,
     });
     if (result != null) {
-      core.info(`Updated ${package} version to ${result}`);
+      if (Array.isArray(result)) {
+        result.forEach((r) => core.info(`Updated ${package} version to ${r}`));
+      } else {
+        core.info(`Updated ${package} version to ${result}`);
+      }
     } else {
       core.info(`${package} is up to date`);
     }

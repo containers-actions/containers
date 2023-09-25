@@ -4,11 +4,12 @@ module.exports = async (scripts) => {
   const package = RegExp(`^packages/(?<p>[\\w-]+)$`, 'gm').exec(context.payload.label.name).groups['p'];
   const version = RegExp(`^${package}/v?(?<v>.*)$`, 'gm').exec(context.payload.pull_request.head.ref).groups['v'];
   const runtime = require('.github/scripts/runtime.js')(scripts);
-  const namespaces = ['docker.io/fangzhengjin', 'ghcr.io/containers-actions'];
+  
+  const registrys = runtime.readDockerRegistrys();
   const tags = [];
-  for (const ns of namespaces) {
-    tags.push(`--tag=${ns}/${package}:${version}`);
-    tags.push(`--tag=${ns}/${package}:latest`);
+  for (const registry of registrys) {
+    tags.push(`--tag=${registry}/${package}:${version}`);
+    tags.push(`--tag=${registry}/${package}:latest`);
   }
   let dockerfile = runtime.readDockerfile(package);
   const baseImage = RegExp(`^FROM\\s+(?<baseImage>.*)\\s+$`, 'gm').exec(dockerfile).groups['baseImage'];
@@ -40,7 +41,7 @@ Package build success 🎉
 Platform: \`${runtime.readBuildPlatform(package).join(',')}\`
 You can find it here:
 \`\`\`
-${namespaces.map((ns) => `${ns}/${package}:${version}`).join('\n')}
+${registrys.map((ns) => `${ns}/${package}:${version}`).join('\n')}
 \`\`\`
   `
     )
