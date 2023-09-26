@@ -5,6 +5,16 @@ module.exports = (scripts) => {
   const yaml = require('js-yaml');
   const actions = {
     // ============================== Common ==============================
+    promiseStep: async (tasks = []) => {
+      return tasks.map(async (task) => {
+        try {
+          await task();
+          return true;
+        } catch (error) {
+          return false;
+        }
+      });
+    },
     retryFetch: async (url, options = {}, maxRetry = 5, retryInterval = 1000) => {
       for (let i = 0; i < maxRetry; i++) {
         try {
@@ -273,7 +283,7 @@ module.exports = (scripts) => {
       const newBranch = `${package}/${newLatestVersion}`;
       await actions.autoPullRequest(newBranch, package, newLatestVersion, async () => {
         return (
-          await Promise.all([
+          await actions.promiseStep([
             ...Object.keys(uploads).map((path) =>
               actions.updateFile(newBranch, path, uploads[path], `Update ${package} version to ${newLatestVersion}`)
             ),
