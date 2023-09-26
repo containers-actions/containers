@@ -3,6 +3,7 @@ module.exports = async ({
   scripts: { github, context, core, glob, io, exec, fetch, require },
   runtime,
 }) => {
+  const semver = require('semver');
   const cheerio = require('cheerio');
   let response = await runtime.retryFetch('https://packages.debian.org/bookworm/subversion');
   const html = await response.text();
@@ -16,7 +17,7 @@ module.exports = async ({
     dockerfile = runtime.replaceVariable('SUBVERSION_VERSION', latestVersion, dockerfile);
     await runtime.updateFileAndCreatePullRequest(package, latestVersion, {
       [`${path}/Dockerfile`]: dockerfile,
-      [`${path}/tags.yml`]: runtime.dumpImageTags([semver.clean(latestVersion), 'latest']),
+      [`${path}/tags.yml`]: runtime.dumpImageTags([semver.clean(latestVersion, { loose: true }), 'latest']),
     });
     return latestVersion;
   }

@@ -24,7 +24,7 @@ module.exports = async ({
     );
     await runtime.updateFileAndCreatePullRequest(package, latestVersion, {
       [`${path}/Dockerfile`]: dockerfile,
-      [`${path}/tags.yml`]: runtime.dumpImageTags([latestVersion, 'latest']),
+      [`${path}/tags.yml`]: runtime.dumpImageTags([semver.clean(latestVersion, { loose: true }), 'latest']),
     });
     return latestVersion;
   }
