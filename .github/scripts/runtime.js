@@ -4,6 +4,7 @@ module.exports = (scripts) => {
   const semver = require('semver');
   const yaml = require('js-yaml');
   const actions = {
+    const: { PACKAGE_DIR: 'packages' },
     // ============================== Common ==============================
     /**
      *
@@ -75,11 +76,11 @@ module.exports = (scripts) => {
      * @param {string} fileName 文件的名称
      * @return {string}         文件的内容
      */
-    readFile: (path, fileName) => {
-      return fs.readFileSync(`${path.length == 0 ? '' : `${path}/`}${fileName}`, 'utf8');
+    readFile: (path) => {
+      return fs.readFileSync(path, 'utf8');
     },
-    writeFile: (path, fileName, value) => {
-      return fs.writeFileSync(`${path.length == 0 ? '' : `${path}/`}${fileName}`, value);
+    writeFile: (path, value) => {
+      return fs.writeFileSync(path, value);
     },
     /**
      * 读取Dockerfile
@@ -88,29 +89,32 @@ module.exports = (scripts) => {
      * @returns {string}       文件内容
      */
     readDockerfile: (package) => {
-      return actions.readFile(`packages/${package}`, 'Dockerfile');
+      return actions.readFile(`${actions.const.PACKAGE_DIR}/${package}/Dockerfile`);
     },
     writeDockerfile: (package, value) => {
-      return actions.writeFile(`packages/${package}`, 'Dockerfile', value);
+      return actions.writeFile(`${actions.const.PACKAGE_DIR}/${package}/Dockerfile`, value);
     },
     readBuildPlatform: (package) => {
       return actions
-        .readFile(`packages/${package}`, 'Platformfile')
+        .readFile(`${actions.const.PACKAGE_DIR}/${package}/Platformfile`)
         .split('\n')
         .filter((x) => x);
     },
     readDockerRegistrys: () => {
-      return yaml.load(actions.readFile('.github', 'docker-registry.yml')).registrys;
+      return yaml.load(actions.readFile('.github/docker-registry.yml')).registrys;
     },
-    dirExists: (path) => {
+    isDirectory: (path) => {
       try {
         return fs.statSync(path).isDirectory();
       } catch (error) {
         return false;
       }
     },
+    readYaml: (path) => {
+      return yaml.load(actions.readFile(path));
+    },
     readImageTags: (package) => {
-      return yaml.load(actions.readFile(`packages/${package}`, 'tags.yml'))['rolling-tags'];
+      return actions.readYaml(`${actions.const.PACKAGE_DIR}/${package}/tags.yml`)['rolling-tags'];
     },
     dumpImageTags: (tags) => {
       return yaml.dump({ 'rolling-tags': tags });
@@ -264,13 +268,45 @@ module.exports = (scripts) => {
       }
       return [];
     },
+    listPullRequest: async (state = 'all') => {
+      const result = await github.rest.pulls.list({
+        ...context.repo,
+        state,
+      });
+      if (result.status === 200) {
+        return result.data;
+      }
+      return [];
+    },
+    /**
+     *
+     * @param {*} pullNumber
+     * @param options title,body,state,base,maintainer_can_modify
+     */
+    updatePullRequest: async (pullNumber, options = {}) => {
+      const result = await github.rest.pulls.update({
+        ...context.repo,
+        pull_number: pullNumber,
+        ...options,
+      });
+      if (result.status === 200) {
+        return true;
+      }
+      return false;
+    },
+    closePullRequest: async (pullNumber) => {
+      return await actions.updatePullRequest(pullNumber, { state: 'closed' });
+    },
+    openPullRequest: async (pullNumber) => {
+      return await actions.updatePullRequest(pullNumber, { state: 'open' });
+    },
     // ============================== Remix ==============================
     autoPullRequest: async (newBranch, package, version, uploadCallback) => {
       if ((await actions.createBranch('main', newBranch)) && (await uploadCallback())) {
         const title = `Upgrade ${package} version to ${version}`;
         const prInfo = await actions.createPullRequest(newBranch, 'main', title, title);
         if (prInfo.status === 201) {
-          await actions.setLabels(prInfo.data.number, [`packages/${package}`]);
+          await actions.setLabels(prInfo.data.number, [`${actions.const.PACKAGE_DIR}/${package}`]);
         }
       }
     },
@@ -289,6 +325,12 @@ module.exports = (scripts) => {
         }
       }
     },
+    /**
+     *
+     * @param {*} package
+     * @param {*} latestVersion
+     * @param {{[path: string]: [content: string]}} uploads 上传的文件信息, 其中path为相对当前包的文件路径, content为base64的文件内容
+     */
     updateFileAndCreatePullRequest: async (package, latestVersion, uploads) => {
       const newLatestVersion = semver.clean(latestVersion, { loose: true });
       const newBranch = `${package}/${newLatestVersion}`;
@@ -297,7 +339,12 @@ module.exports = (scripts) => {
           await actions.promiseStep([
             ...Object.keys(uploads).map(
               (path) => async () =>
-                actions.updateFile(newBranch, path, uploads[path], `Update ${package} version to ${newLatestVersion}`)
+                actions.updateFile(
+                  newBranch,
+                  `${actions.const.PACKAGE_DIR}/${package}/${path}`,
+                  uploads[path],
+                  `Update ${package} version to ${newLatestVersion}`
+                )
             ),
           ])
         ).every((x) => x);

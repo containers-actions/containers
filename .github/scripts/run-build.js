@@ -9,8 +9,11 @@ module.exports = async (scripts) => {
 
   let subdir = '';
   prFiles.forEach((x) => {
-    if (x.filename.startsWith(`packages/${package}/`) && x.filename.endsWith('/Dockerfile')) {
-      subdir = x.filename.substring(`packages/${package}/`.length, x.filename.length - '/Dockerfile'.length);
+    if (x.filename.startsWith(`${runtime.const.PACKAGE_DIR}/${package}/`) && x.filename.endsWith('/Dockerfile')) {
+      subdir = x.filename.substring(
+        `${runtime.const.PACKAGE_DIR}/${package}/`.length,
+        x.filename.length - '/Dockerfile'.length
+      );
     }
   });
 
@@ -21,7 +24,7 @@ module.exports = async (scripts) => {
 
   const tags = [];
   registrys.forEach((registry) => {
-    imageTags.forEach((tag) => tags.push(`--tag=${registry}/${package}:${tag}`));
+    imageTags.forEach((tag) => tags.push(`${registry}/${package}:${tag}`));
   });
 
   let dockerfile = runtime.readDockerfile(packagePath);
@@ -36,12 +39,12 @@ module.exports = async (scripts) => {
 
   const args = ['buildx', 'build', '--provenance=false'];
   args.push(`--platform=${platformArgs.join(',')}`);
-  tags.forEach((x) => args.push(x));
+  tags.forEach((x) => args.push(`--tag=${x}`));
   labelArgs.forEach((x) => args.push(x));
   if (platformArgs.length > 1) {
     args.push(`--output=type=image,${annotationArgs.join(',')}`);
   }
-  args.push(context.payload.label.name);
+  args.push(`${runtime.const.PACKAGE_DIR}/${packagePath}`);
   args.push('--push');
 
   await exec.exec('docker', args);
@@ -54,7 +57,7 @@ Package build success 🎉
 Platform: \`${runtime.readBuildPlatform(packagePath).join(',')}\`
 You can find it here:
 \`\`\`
-${registrys.map((ns) => `${ns}/${package}:${version}`).join('\n')}
+${tags.join('\n')}
 \`\`\`
   `
     )

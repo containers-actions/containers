@@ -1,5 +1,5 @@
 module.exports = async ({
-  constants: { package, path },
+  constants: { package },
   scripts: { github, context, core, glob, io, exec, fetch, require },
   runtime,
 }) => {
@@ -44,8 +44,7 @@ module.exports = async ({
 
   for (const match of html.matchAll(/<td>(?<v1>\w\d{4}\w)\s+\((?<v2>[\d.]+)\)(?:<br>)?<\/td>/gm)) {
     const { v1, v2 } = match.groups;
-    core.info(`package/${v1} exists: ${runtime.dirExists(`package/${v1}`)}`);
-    if (runtime.dirExists(`package/${v1}`)) {
+    if (runtime.isDirectory(`${runtime.const.PACKAGE_DIR}/${package}/${v1}`)) {
       const v3 = patchVersion[v1];
       const versionPrune = `${/(?<v>\d+)/.exec(v1).groups['v']}.${v2}-${v3}`; // 2023.9.14-5
       versions[versionPrune] = {
@@ -58,15 +57,16 @@ module.exports = async ({
         v3, // 0
         version: versionPrune, // 2023.9.14-5
         installParam: getInstallParam(v2),
-        ldLibraryPath: getLdLibraryPath(v1Raw, v2),
+        ldLibraryPath: getLdLibraryPath(v1, v2),
       };
     }
   }
 
   const maxVersion = semver.maxSatisfying(Object.keys(versions), '*');
 
-  const upgradeVersions = await Object.values(versions).map(async (v) => {
-    let dockerfile = runtime.readDockerfile(`package/${v['v1Raw']}`);
+  const upgradeVersions = [];
+  for (const v of Object.values(versions)) {
+    let dockerfile = runtime.readDockerfile(`${package}/${v['v1Raw']}`);
     const currentVersion = runtime.getVersion('MATLAB_RUNTIME_VERSION', dockerfile);
     const latestVersion = v['version'];
     if (semver.gt(latestVersion, currentVersion)) {
@@ -87,12 +87,12 @@ module.exports = async ({
       dockerfile = runtime.replaceVariable('MATLAB_RUNTIME_DOWNLOAD_URL', versions[latestVersion].url, dockerfile);
       dockerfile = runtime.replaceVariable('LD_LIBRARY_PATH', versions[latestVersion].ldLibraryPath, dockerfile);
       await runtime.updateFileAndCreatePullRequest(package, latestVersion, {
-        [`package/${v['v1Raw']}/Dockerfile`]: dockerfile,
-        [`package/${v['v1Raw']}/tags.yml`]: runtime.dumpImageTags(tags),
+        [`${v['v1Raw']}/Dockerfile`]: dockerfile,
+        [`${v['v1Raw']}/tags.yml`]: runtime.dumpImageTags(tags),
       });
-      return latestVersion;
+      upgradeVersions.push(latestVersion);
     }
-  });
+  }
 
   if (upgradeVersions.length > 0) {
     return upgradeVersions;

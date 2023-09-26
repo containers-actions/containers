@@ -1,16 +1,20 @@
-name: "check update"
+name: comment-bot
+run-name: comment-bot
 on:
-  workflow_dispatch:
-  schedule:
-    # 每天8,12,16,20点检测一次
-    - cron: '0 0,4,8,12 * * *'
+  issue_comment:
+    types:
+      - created
 permissions: {}
 jobs:
-  check-update:
+  comment-bot:
+    name: comment-bot
+    if: startsWith(github.event.comment.body, '/')
     runs-on: ubuntu-latest
-    name: Check Update
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: main
+          sparse-checkout: .github
       - uses: actions/setup-node@v3
         with:
           node-version: lts/Hydrogen
@@ -19,7 +23,6 @@ jobs:
         env:
           SECRETS: ${{ toJSON(secrets) }}
         with:
-          # script
           github-token: ${{ secrets.BOT_PAT }}
           script: |
-            require('.github/scripts/run-task.js')({ github, context, core, glob, io, exec, fetch, require }, "packages/**/update.task.js");
+            require('.github/scripts/comment-bot.js')({ github, context, core, glob, io, exec, fetch, require });
