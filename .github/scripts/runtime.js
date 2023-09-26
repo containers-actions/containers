@@ -6,7 +6,7 @@ module.exports = (scripts) => {
   const actions = {
     // ============================== Common ==============================
     promiseStep: async (tasks = []) => {
-      return tasks.map(async (task) => {
+      return await tasks.map(async (task) => {
         try {
           await task();
           return true;
