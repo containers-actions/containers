@@ -1,11 +1,11 @@
 module.exports = async (scripts) => {
   const { github, context, core, glob, io, exec, fetch, require } = scripts;
 
+  const runtime = require('.github/scripts/runtime.js')(scripts);
+
   const package = RegExp(`^packages/(?<p>[\\w-]+)$`, 'gm').exec(context.payload.label.name).groups['p'];
   const version = RegExp(`^${package}/v?(?<v>.*)$`, 'gm').exec(context.payload.pull_request.head.ref).groups['v'];
-
   const prFiles = await runtime.listPullRequestFiles(context.payload.number);
-  const runtime = require('.github/scripts/runtime.js')(scripts);
 
   let subdir = '';
   prFiles.forEach((x) => {
