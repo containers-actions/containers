@@ -290,6 +290,12 @@ module.exports = (scripts) => {
         }
       }
     },
+    /**
+     *
+     * @param {*} package
+     * @param {*} latestVersion
+     * @param {{[path: string]: [content: string]}} uploads 上传的文件信息, 其中path为相对当前包的文件路径, content为base64的文件内容
+     */
     updateFileAndCreatePullRequest: async (package, latestVersion, uploads) => {
       const newLatestVersion = semver.clean(latestVersion, { loose: true });
       const newBranch = `${package}/${newLatestVersion}`;
@@ -298,7 +304,12 @@ module.exports = (scripts) => {
           await actions.promiseStep([
             ...Object.keys(uploads).map(
               (path) => async () =>
-                actions.updateFile(newBranch, path, uploads[path], `Update ${package} version to ${newLatestVersion}`)
+                actions.updateFile(
+                  newBranch,
+                  `${actions.const.PACKAGE_DIR}/${package}/${path}`,
+                  uploads[path],
+                  `Update ${package} version to ${newLatestVersion}`
+                )
             ),
           ])
         ).every((x) => x);
