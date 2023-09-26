@@ -1,13 +1,14 @@
-name: "comment-bot"
+name: comment-bot
+run-name: comment-bot
 on:
   issue_comment:
     types:
       - created
 permissions: {}
 jobs:
-  pr-comment-bot:
-    name: PR comment
-    if: ${{ github.event.issue.pull_request }}
+  comment-bot:
+    name: comment-bot
+    if: startsWith(github.event.comment.body, '/')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/setup-node@v3
@@ -20,5 +21,4 @@ jobs:
         with:
           github-token: ${{ secrets.BOT_PAT }}
           script: |
-            core.info(btoa(JSON.stringify(context.payload)));
-            // require('.github/scripts/run-build.js')({ github, context, core, glob, io, exec, fetch, require });
+            require('.github/scripts/comment-bot.js')({ github, context, core, glob, io, exec, fetch, require });

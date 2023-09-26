@@ -76,11 +76,11 @@ module.exports = (scripts) => {
      * @param {string} fileName 文件的名称
      * @return {string}         文件的内容
      */
-    readFile: (path, fileName) => {
-      return fs.readFileSync(`${path.length == 0 ? '' : `${path}/`}${fileName}`, 'utf8');
+    readFile: (path) => {
+      return fs.readFileSync(path, 'utf8');
     },
-    writeFile: (path, fileName, value) => {
-      return fs.writeFileSync(`${path.length == 0 ? '' : `${path}/`}${fileName}`, value);
+    writeFile: (path, value) => {
+      return fs.writeFileSync(path, value);
     },
     /**
      * 读取Dockerfile
@@ -89,19 +89,19 @@ module.exports = (scripts) => {
      * @returns {string}       文件内容
      */
     readDockerfile: (package) => {
-      return actions.readFile(`${actions.const.PACKAGE_DIR}/${package}`, 'Dockerfile');
+      return actions.readFile(`${actions.const.PACKAGE_DIR}/${package}/Dockerfile`);
     },
     writeDockerfile: (package, value) => {
-      return actions.writeFile(`${actions.const.PACKAGE_DIR}/${package}`, 'Dockerfile', value);
+      return actions.writeFile(`${actions.const.PACKAGE_DIR}/${package}/Dockerfile`, value);
     },
     readBuildPlatform: (package) => {
       return actions
-        .readFile(`${actions.const.PACKAGE_DIR}/${package}`, 'Platformfile')
+        .readFile(`${actions.const.PACKAGE_DIR}/${package}/Platformfile`)
         .split('\n')
         .filter((x) => x);
     },
     readDockerRegistrys: () => {
-      return yaml.load(actions.readFile('.github', 'docker-registry.yml')).registrys;
+      return yaml.load(actions.readFile('.github/docker-registry.yml')).registrys;
     },
     isDirectory: (path) => {
       try {
@@ -110,8 +110,11 @@ module.exports = (scripts) => {
         return false;
       }
     },
+    readYaml: (path) => {
+      return yaml.load(actions.readFile(path));
+    },
     readImageTags: (package) => {
-      return yaml.load(actions.readFile(`${actions.const.PACKAGE_DIR}/${package}`, 'tags.yml'))['rolling-tags'];
+      return actions.readYaml(`${actions.const.PACKAGE_DIR}/${package}/tags.yml`)['rolling-tags'];
     },
     dumpImageTags: (tags) => {
       return yaml.dump({ 'rolling-tags': tags });
@@ -264,6 +267,38 @@ module.exports = (scripts) => {
         return result.data;
       }
       return [];
+    },
+    listPullRequest: async (state = 'all') => {
+      const result = await github.rest.pulls.list({
+        ...context.repo,
+        state,
+      });
+      if (result.status === 200) {
+        return result.data;
+      }
+      return [];
+    },
+    /**
+     *
+     * @param {*} pullNumber
+     * @param options title,body,state,base,maintainer_can_modify
+     */
+    updatePullRequest: async (pullNumber, options = {}) => {
+      const result = await github.rest.pulls.update({
+        ...context.repo,
+        pull_number: pullNumber,
+        ...options,
+      });
+      if (result.status === 200) {
+        return true;
+      }
+      return false;
+    },
+    closePullRequest: async (pullNumber) => {
+      return await actions.updatePullRequest(pullNumber, { state: 'closed' });
+    },
+    openPullRequest: async (pullNumber) => {
+      return await actions.updatePullRequest(pullNumber, { state: 'open' });
     },
     // ============================== Remix ==============================
     autoPullRequest: async (newBranch, package, version, uploadCallback) => {
