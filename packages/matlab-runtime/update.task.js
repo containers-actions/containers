@@ -58,7 +58,7 @@ module.exports = async ({
         v3, // 0
         version: versionPrune, // 2023.9.14-5
         installParam: getInstallParam(v2),
-        ldLibraryPath: getLdLibraryPath(v1Raw, v2),
+        ldLibraryPath: getLdLibraryPath(v1, v2),
       };
     }
   }
