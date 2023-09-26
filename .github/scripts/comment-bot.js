@@ -17,7 +17,7 @@ module.exports = async (scripts) => {
 
   const comment = async (comment) => await runtime.createIssueComment(issueNumber, comment);
 
-  const { command, subCommand1 } = commentData.exec(/^(?<command>\/\S+)(?:\s+(?<subCommand1>\S+))$/gm).groups;
+  const { command, subCommand1 } = /^(?<command>\/\S+)(?:\s+(?<subCommand1>\S+))$/gm.exec(commentData).groups;
   switch (command) {
     case 'closeAllAndDeleteBranch':
       const pullRequestList = await runtime.listPullRequest('open');
