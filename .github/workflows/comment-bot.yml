@@ -1,0 +1,24 @@
+name: "comment-bot"
+on:
+  issue_comment:
+    types:
+      - created
+permissions: {}
+jobs:
+  pr-comment-bot:
+    name: PR comment
+    if: ${{ github.event.issue.pull_request }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-node@v3
+        with:
+          node-version: lts/Hydrogen
+      - run: npm install semver cheerio js-yaml
+      - uses: actions/github-script@v6
+        env:
+          SECRETS: ${{ toJSON(secrets) }}
+        with:
+          github-token: ${{ secrets.BOT_PAT }}
+          script: |
+            core.info(btoa(JSON.stringify(context.payload)));
+            // require('.github/scripts/run-build.js')({ github, context, core, glob, io, exec, fetch, require });
