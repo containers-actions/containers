@@ -16,6 +16,7 @@ module.exports = async ({
     dockerfile = runtime.replaceVariable('SUBVERSION_VERSION', latestVersion, dockerfile);
     await runtime.uploadFileAndCreatePullRequest(package, latestVersion, {
       [`${path}/Dockerfile`]: dockerfile,
+      [`${path}/tags.yml`]: runtime.dumpImageTags([latestVersion, 'latest']),
     });
     return latestVersion;
   }

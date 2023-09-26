@@ -230,6 +230,16 @@ module.exports = (scripts) => {
       });
       return result.status === 201;
     },
+    listPullRequestFiles: async (pullNumber) => {
+      const result = await github.rest.pulls.listFiles({
+        ...context.repo,
+        pull_number: pullNumber,
+      });
+      if (result.status === 200) {
+        return result.data;
+      }
+      return [];
+    },
     // ============================== Remix ==============================
     autoPullRequest: async (newBranch, package, version, uploadCallback) => {
       if ((await actions.createBranch('main', newBranch)) && (await uploadCallback())) {

@@ -24,6 +24,7 @@ module.exports = async ({
     );
     await runtime.uploadFileAndCreatePullRequest(package, latestVersion, {
       [`${path}/Dockerfile`]: dockerfile,
+      [`${path}/tags.yml`]: runtime.dumpImageTags([latestVersion, 'latest']),
     });
     return latestVersion;
   }

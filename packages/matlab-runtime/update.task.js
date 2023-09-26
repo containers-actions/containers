@@ -17,10 +17,10 @@ module.exports = async ({
     }
   }
 
-  const getLdLibraryPath = (v1, v2) => {
+  const getLdLibraryPath = (v1Raw, v2) => {
     let version;
     if (semver.gte(semver.coerce(v2), semver.coerce('9.13'), true)) {
-      version = v1;
+      version = v1Raw;
     } else {
       version = `v${v2.replace('.', '')}`;
     }
@@ -44,10 +44,10 @@ module.exports = async ({
 
   for (const match of html.matchAll(/<td>(?<v1>\w\d{4}\w)\s+\((?<v2>[\d.]+)\)(?:<br>)?<\/td>/gm)) {
     const { v1, v2 } = match.groups;
-    if (semver.gte(semver.coerce(v2), semver.coerce('9.11'), true)) {
+    if (runtime.dirExists(`package/${v1}`)) {
       const v3 = patchVersion[v1];
-      const versionPrune = `${/(?<v>\d+)/.exec(v1).groups['v']}.${v2}-${v3}`;
-      versions[version] = {
+      const versionPrune = `${/(?<v>\d+)/.exec(v1).groups['v']}.${v2}-${v3}`; // 2023.9.14-5
+      versions[versionPrune] = {
         url: `https://ssd.mathworks.com/supportfiles/downloads/${v1}/Release/${v3}/deployment_files/installer/complete/glnxa64/MATLAB_Runtime_${v1}_${
           v3 == '0' ? '' : `Update_${v3}_`
         }glnxa64.zip`,
@@ -55,40 +55,43 @@ module.exports = async ({
         v1: versionPrune.split('.')[0], // 2023
         v2, // 9.11
         v3, // 0
+        version: versionPrune, // 2023.9.14-5
         installParam: getInstallParam(v2),
-        ldLibraryPath: getLdLibraryPath(v1, v2),
+        ldLibraryPath: getLdLibraryPath(v1Raw, v2),
       };
     }
   }
 
-  const upgradeVersions = await Object.values(versions)
-    .filter((v) => runtime.dirExists(`package/${v['v1Raw']}`))
-    .map(async (v) => {
-      let dockerfile = runtime.readDockerfile(`package/${v['v1Raw']}`);
-      const currentVersion = runtime.getVersion('MATLAB_RUNTIME_VERSION', dockerfile);
+  const maxVersion = semver.maxSatisfying(Object.keys(versions), '*');
 
-      const sortedVersions = semver.rsort(Object.keys(versions));
-      let sortedIndex = sortedVersions.indexOf(currentVersion);
-      if (sortedIndex == -1) {
-        sortedIndex = sortedVersions.length;
+  const upgradeVersions = await Object.values(versions).map(async (v) => {
+    let dockerfile = runtime.readDockerfile(`package/${v['v1Raw']}`);
+    const currentVersion = runtime.getVersion('MATLAB_RUNTIME_VERSION', dockerfile);
+    const latestVersion = v['version'];
+    if (semver.gt(latestVersion, currentVersion)) {
+      const tags = [];
+      tags.push(v['v1']);
+      tags.push(latestVersion);
+
+      if (latestVersion == maxVersion) {
+        tags.push('latest');
       }
-      if (sortedIndex != 0) {
-        const latestVersion = sortedVersions[sortedIndex - 1];
-        dockerfile = runtime.replaceVariable('MATLAB_RUNTIME_VERSION', latestVersion, dockerfile);
-        dockerfile = runtime.replaceVariable(
-          'MATLAB_RUNTIME_INSTALL_PARAMS',
-          versions[latestVersion].installParam,
-          dockerfile
-        );
-        dockerfile = runtime.replaceVariable('MATLAB_RUNTIME_DOWNLOAD_URL', versions[latestVersion].url, dockerfile);
-        dockerfile = runtime.replaceVariable('LD_LIBRARY_PATH', versions[latestVersion].ldLibraryPath, dockerfile);
-        await runtime.uploadFileAndCreatePullRequest(package, latestVersion, {
-          [`package/${v['v1Raw']}/Dockerfile`]: dockerfile,
-          [`package/${v['v1Raw']}/tags.yml`]: '',
-        });
-        return latestVersion;
-      }
-    });
+
+      dockerfile = runtime.replaceVariable('MATLAB_RUNTIME_VERSION', latestVersion, dockerfile);
+      dockerfile = runtime.replaceVariable(
+        'MATLAB_RUNTIME_INSTALL_PARAMS',
+        versions[latestVersion].installParam,
+        dockerfile
+      );
+      dockerfile = runtime.replaceVariable('MATLAB_RUNTIME_DOWNLOAD_URL', versions[latestVersion].url, dockerfile);
+      dockerfile = runtime.replaceVariable('LD_LIBRARY_PATH', versions[latestVersion].ldLibraryPath, dockerfile);
+      await runtime.uploadFileAndCreatePullRequest(package, latestVersion, {
+        [`package/${v['v1Raw']}/Dockerfile`]: dockerfile,
+        [`package/${v['v1Raw']}/tags.yml`]: runtime.dumpImageTags(tags),
+      });
+      return latestVersion;
+    }
+  });
 
   if (upgradeVersions.length > 0) {
     return upgradeVersions;
