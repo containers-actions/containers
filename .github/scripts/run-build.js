@@ -10,7 +10,10 @@ module.exports = async (scripts) => {
   let subdir = '';
   prFiles.forEach((x) => {
     if (x.filename.startsWith(`${runtime.const.PACKAGE_DIR}/${package}/`) && x.filename.endsWith('/Dockerfile')) {
-      subdir = x.filename.substring(`${runtime.const.PACKAGE_DIR}/${package}/`.length, x.filename.length - '/Dockerfile'.length);
+      subdir = x.filename.substring(
+        `${runtime.const.PACKAGE_DIR}/${package}/`.length,
+        x.filename.length - '/Dockerfile'.length
+      );
     }
   });
 
@@ -41,7 +44,7 @@ module.exports = async (scripts) => {
   if (platformArgs.length > 1) {
     args.push(`--output=type=image,${annotationArgs.join(',')}`);
   }
-  args.push(context.payload.label.name);
+  args.push(`${runtime.const.PACKAGE_DIR}/${packagePath}`);
   args.push('--push');
 
   await exec.exec('docker', args);
