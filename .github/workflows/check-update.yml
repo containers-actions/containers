@@ -14,7 +14,7 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: lts/Hydrogen
-      - run: npm install semver cheerio
+      - run: npm install semver cheerio js-yaml
       - uses: actions/github-script@v6
         env:
           SECRETS: ${{ toJSON(secrets) }}
