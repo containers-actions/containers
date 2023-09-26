@@ -191,7 +191,10 @@ module.exports = (scripts) => {
      * @returns {Promise<Object>}   一个解析为 GitHub API 响应对象的 Promise
      */
     updateFile: async (branch, filePath, content, message) => {
-      const fileInfo = await actions.getContent(branch, filePath);
+      let fileInfo = {};
+      try {
+        fileInfo = await actions.getContent(branch, filePath);
+      } catch (error) {}
       const result = await github.rest.repos.createOrUpdateFileContents({
         ...context.repo,
         path: filePath,
