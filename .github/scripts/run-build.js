@@ -21,7 +21,7 @@ module.exports = async (scripts) => {
 
   const tags = [];
   registrys.forEach((registry) => {
-    imageTags.forEach((tag) => tags.push(`--tag=${registry}/${package}:${tag}`));
+    imageTags.forEach((tag) => tags.push(`${registry}/${package}:${tag}`));
   });
 
   let dockerfile = runtime.readDockerfile(packagePath);
@@ -36,7 +36,7 @@ module.exports = async (scripts) => {
 
   const args = ['buildx', 'build', '--provenance=false'];
   args.push(`--platform=${platformArgs.join(',')}`);
-  tags.forEach((x) => args.push(x));
+  tags.forEach((x) => args.push(`--tag=${x}`));
   labelArgs.forEach((x) => args.push(x));
   if (platformArgs.length > 1) {
     args.push(`--output=type=image,${annotationArgs.join(',')}`);
@@ -54,7 +54,7 @@ Package build success 🎉
 Platform: \`${runtime.readBuildPlatform(packagePath).join(',')}\`
 You can find it here:
 \`\`\`
-${registrys.map((ns) => `${ns}/${package}:${version}`).join('\n')}
+${tags.join('\n')}
 \`\`\`
   `
     )
