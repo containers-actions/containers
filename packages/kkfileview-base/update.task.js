@@ -22,7 +22,7 @@ module.exports = async ({
       /KK_OFFICE_HOME="\/opt\/libreoffice([\d.]+)"/g,
       `KK_OFFICE_HOME="/opt/libreoffice${semver.major(latestVersion)}.${semver.minor(latestVersion)}"`
     );
-    await runtime.uploadFileAndCreatePullRequest(package, latestVersion, {
+    await runtime.updateFileAndCreatePullRequest(package, latestVersion, {
       [`${path}/Dockerfile`]: dockerfile,
       [`${path}/tags.yml`]: runtime.dumpImageTags([latestVersion, 'latest']),
     });

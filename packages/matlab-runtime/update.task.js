@@ -85,7 +85,7 @@ module.exports = async ({
       );
       dockerfile = runtime.replaceVariable('MATLAB_RUNTIME_DOWNLOAD_URL', versions[latestVersion].url, dockerfile);
       dockerfile = runtime.replaceVariable('LD_LIBRARY_PATH', versions[latestVersion].ldLibraryPath, dockerfile);
-      await runtime.uploadFileAndCreatePullRequest(package, latestVersion, {
+      await runtime.updateFileAndCreatePullRequest(package, latestVersion, {
         [`package/${v['v1Raw']}/Dockerfile`]: dockerfile,
         [`package/${v['v1Raw']}/tags.yml`]: runtime.dumpImageTags(tags),
       });
