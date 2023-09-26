@@ -269,11 +269,13 @@ module.exports = (scripts) => {
       const newLatestVersion = semver.clean(latestVersion, { loose: true });
       const newBranch = `${package}/${newLatestVersion}`;
       await actions.autoPullRequest(newBranch, package, newLatestVersion, async () => {
-        return await Promise.all([
-          ...Object.keys(uploads).map((path) =>
-            actions.updateFile(newBranch, path, uploads[path], `Update ${package} version to ${newLatestVersion}`)
-          ),
-        ]).every((x) => x);
+        return (
+          await Promise.all([
+            ...Object.keys(uploads).map((path) =>
+              actions.updateFile(newBranch, path, uploads[path], `Update ${package} version to ${newLatestVersion}`)
+            ),
+          ])
+        ).every((x) => x);
       });
     },
   };
