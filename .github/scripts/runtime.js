@@ -4,6 +4,7 @@ module.exports = (scripts) => {
   const semver = require('semver');
   const yaml = require('js-yaml');
   const actions = {
+    const: { PACKAGE_DIR: 'packages' },
     // ============================== Common ==============================
     /**
      *
@@ -88,14 +89,14 @@ module.exports = (scripts) => {
      * @returns {string}       文件内容
      */
     readDockerfile: (package) => {
-      return actions.readFile(`packages/${package}`, 'Dockerfile');
+      return actions.readFile(`${actions.const.PACKAGE_DIR}/${package}`, 'Dockerfile');
     },
     writeDockerfile: (package, value) => {
-      return actions.writeFile(`packages/${package}`, 'Dockerfile', value);
+      return actions.writeFile(`${actions.const.PACKAGE_DIR}/${package}`, 'Dockerfile', value);
     },
     readBuildPlatform: (package) => {
       return actions
-        .readFile(`packages/${package}`, 'Platformfile')
+        .readFile(`${actions.const.PACKAGE_DIR}/${package}`, 'Platformfile')
         .split('\n')
         .filter((x) => x);
     },
@@ -110,7 +111,7 @@ module.exports = (scripts) => {
       }
     },
     readImageTags: (package) => {
-      return yaml.load(actions.readFile(`packages/${package}`, 'tags.yml'))['rolling-tags'];
+      return yaml.load(actions.readFile(`${actions.const.PACKAGE_DIR}/${package}`, 'tags.yml'))['rolling-tags'];
     },
     dumpImageTags: (tags) => {
       return yaml.dump({ 'rolling-tags': tags });
@@ -270,7 +271,7 @@ module.exports = (scripts) => {
         const title = `Upgrade ${package} version to ${version}`;
         const prInfo = await actions.createPullRequest(newBranch, 'main', title, title);
         if (prInfo.status === 201) {
-          await actions.setLabels(prInfo.data.number, [`packages/${package}`]);
+          await actions.setLabels(prInfo.data.number, [`${actions.const.PACKAGE_DIR}/${package}`]);
         }
       }
     },

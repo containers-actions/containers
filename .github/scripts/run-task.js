@@ -1,7 +1,6 @@
 module.exports = async (scripts, patterns) => {
   const { github, context, core, glob, io, exec, fetch, require } = scripts;
 
-  const baseDir = 'packages';
   const runtime = require('.github/scripts/runtime.js')(scripts);
   const globber = await glob.create(patterns, {
     followSymbolicLinks: false,
@@ -9,9 +8,9 @@ module.exports = async (scripts, patterns) => {
   });
 
   for await (const task of globber.globGenerator()) {
-    const package = task.substring(task.indexOf(baseDir) + baseDir.length + 1, task.lastIndexOf('/'));
+    const package = task.substring(task.indexOf(runtime.const.PACKAGE_DIR) + runtime.const.PACKAGE_DIR.length + 1, task.lastIndexOf('/'));
     runtime.printlnWarpText(`${package} Task`);
-    const path = `${baseDir}/${package}`;
+    const path = `${runtime.const.PACKAGE_DIR}/${package}`;
     const run = require(task);
     core.info(`Checking for ${package} updates`);
     const result = await run({

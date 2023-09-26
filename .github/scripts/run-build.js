@@ -9,8 +9,8 @@ module.exports = async (scripts) => {
 
   let subdir = '';
   prFiles.forEach((x) => {
-    if (x.filename.startsWith(`packages/${package}/`) && x.filename.endsWith('/Dockerfile')) {
-      subdir = x.filename.substring(`packages/${package}/`.length, x.filename.length - '/Dockerfile'.length);
+    if (x.filename.startsWith(`${runtime.const.PACKAGE_DIR}/${package}/`) && x.filename.endsWith('/Dockerfile')) {
+      subdir = x.filename.substring(`${runtime.const.PACKAGE_DIR}/${package}/`.length, x.filename.length - '/Dockerfile'.length);
     }
   });
 
