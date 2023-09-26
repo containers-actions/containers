@@ -13,6 +13,7 @@ module.exports = async (scripts) => {
 
   core.info(`Allow users: ${allowUsers}`);
   core.info(`Comment user: ${commentUser}`);
+  core.info(`Comment data: ${commentData}`);
 
   if (!allowUsers.includes(commentUser)) {
     return;
