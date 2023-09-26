@@ -11,18 +11,13 @@ module.exports = async (scripts) => {
 
   const allowUsers = runtime.readYaml('.github/allow-bot-user.yml')['users'];
 
-  core.info(`Allow users: ${allowUsers}`);
-  core.info(`Comment user: ${commentUser}`);
-  core.info(`Comment data: ${commentData}`);
-
   if (!allowUsers.includes(commentUser)) {
     return;
   }
 
   const comment = async (comment) => await runtime.createIssueComment(issueNumber, comment);
 
-  const groups = /^\/(?<command>\S+)(?:\s+(?<subCommand1>\S+))?$/gm.exec(commentData);
-  core.info(`command: ${groups.command}`);
+  const groups = /^\/(?<command>\S+)(?:\s+(?<subCommand1>\S+))?$/gm.exec(commentData).groups;
   switch (groups.command) {
     case 'closeAllAndDeleteBranch':
       const pullRequestList = await runtime.listPullRequest('open');
