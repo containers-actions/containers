@@ -5,15 +5,21 @@ module.exports = (scripts) => {
   const yaml = require('js-yaml');
   const actions = {
     // ============================== Common ==============================
+    /**
+     *
+     * @param {() => Promise<boolean>} tasks
+     * @returns boolean[]
+     */
     promiseStep: async (tasks = []) => {
-      return await tasks.map(async (task) => {
+      const result = [];
+      for (const task of tasks) {
         try {
-          await task();
-          return true;
+          result.push(await task());
         } catch (error) {
-          return false;
+          result.push(false);
         }
-      });
+      }
+      return result;
     },
     retryFetch: async (url, options = {}, maxRetry = 5, retryInterval = 1000) => {
       for (let i = 0; i < maxRetry; i++) {
@@ -27,8 +33,13 @@ module.exports = (scripts) => {
         }
       }
     },
-    sleep: async (ms) => {
-      return new Promise((resolve) => setTimeout(resolve, ms));
+    sleep: async (ms, callback = () => {}) => {
+      return new Promise((resolve) =>
+        setTimeout(() => {
+          resolve();
+          callback && callback();
+        }, ms)
+      );
     },
     printlnWarpText: (str, width = 52) => {
       let context = str;
@@ -284,8 +295,9 @@ module.exports = (scripts) => {
       await actions.autoPullRequest(newBranch, package, newLatestVersion, async () => {
         return (
           await actions.promiseStep([
-            ...Object.keys(uploads).map((path) =>
-              actions.updateFile(newBranch, path, uploads[path], `Update ${package} version to ${newLatestVersion}`)
+            ...Object.keys(uploads).map(
+              (path) => async () =>
+                actions.updateFile(newBranch, path, uploads[path], `Update ${package} version to ${newLatestVersion}`)
             ),
           ])
         ).every((x) => x);
