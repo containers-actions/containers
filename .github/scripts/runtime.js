@@ -2,6 +2,7 @@ module.exports = (scripts) => {
   const { github, context, core, glob, io, exec, fetch, require } = scripts;
   const fs = require('fs');
   const semver = require('semver');
+  const yaml = require('js-yaml');
   const actions = {
     // ============================== Common ==============================
     retryFetch: async (url, options = {}, maxRetry = 5, retryInterval = 1000) => {
@@ -47,17 +48,17 @@ module.exports = (scripts) => {
       return JSON.parse(process.env.SECRETS || '{}')[secretName];
     },
     /**
-     * 从指定的路径和文件名读取一个包文件
+     * 从指定的路径和文件名读取一个文件
      *
      * @param {string} path     文件的路径
      * @param {string} fileName 文件的名称
      * @return {string}         文件的内容
      */
-    readPackageFile: (path, fileName) => {
-      return fs.readFileSync(`${path}/${fileName}`, 'utf8');
+    readFile: (path, fileName) => {
+      return fs.readFileSync(`${path.length == 0 ? '' : `${path}/`}${fileName}`, 'utf8');
     },
-    writePackageFile: (path, fileName, value) => {
-      return fs.writeFileSync(`${path}/${fileName}`, value);
+    writeFile: (path, fileName, value) => {
+      return fs.writeFileSync(`${path.length == 0 ? '' : `${path}/`}${fileName}`, value);
     },
     /**
      * 读取Dockerfile
@@ -66,16 +67,32 @@ module.exports = (scripts) => {
      * @returns {string}       文件内容
      */
     readDockerfile: (package) => {
-      return actions.readPackageFile(`packages/${package}`, 'Dockerfile');
+      return actions.readFile(`packages/${package}`, 'Dockerfile');
     },
     writeDockerfile: (package, value) => {
-      return actions.writePackageFile(`packages/${package}`, 'Dockerfile', value);
+      return actions.writeFile(`packages/${package}`, 'Dockerfile', value);
     },
     readBuildPlatform: (package) => {
       return actions
-        .readPackageFile(`packages/${package}`, 'Platformfile')
+        .readFile(`packages/${package}`, 'Platformfile')
         .split('\n')
         .filter((x) => x);
+    },
+    readDockerRegistrys: () => {
+      return yaml.load(actions.readFile('.github', 'docker-registry.yml')).registrys;
+    },
+    dirExists: (path) => {
+      try {
+        return fs.statSync(path).isDirectory();
+      } catch (error) {
+        return false;
+      }
+    },
+    readImageTags: (package) => {
+      return yaml.load(actions.readFile(`packages/${package}`, 'tags.yml'))['rolling-tags'];
+    },
+    dumpImageTags: (tags) => {
+      return yaml.dump({ 'rolling-tags': tags });
     },
     getImageAnnotation: (package, version, customizeAnnotation = {}) => {
       const annotations = {
@@ -213,6 +230,16 @@ module.exports = (scripts) => {
       });
       return result.status === 201;
     },
+    listPullRequestFiles: async (pullNumber) => {
+      const result = await github.rest.pulls.listFiles({
+        ...context.repo,
+        pull_number: pullNumber,
+      });
+      if (result.status === 200) {
+        return result.data;
+      }
+      return [];
+    },
     // ============================== Remix ==============================
     autoPullRequest: async (newBranch, package, version, uploadCallback) => {
       if ((await actions.createBranch('main', newBranch)) && (await uploadCallback())) {
@@ -238,16 +265,15 @@ module.exports = (scripts) => {
         }
       }
     },
-    uploadFileAndCreatePullRequest: async (package, latestVersion, uploadPath, content) => {
+    uploadFileAndCreatePullRequest: async (package, latestVersion, uploads) => {
       const newLatestVersion = semver.clean(latestVersion, { loose: true });
       const newBranch = `${package}/${newLatestVersion}`;
       await actions.autoPullRequest(newBranch, package, newLatestVersion, async () => {
-        return await actions.updateFile(
-          newBranch,
-          uploadPath,
-          content,
-          `Update ${package} version to ${newLatestVersion}`
-        );
+        return await Promise.all([
+          ...Object.keys(uploads).map((path) =>
+            actions.uploadFile(newBranch, path, uploads[path], `Update ${package} version to ${newLatestVersion}`)
+          ),
+        ]).every((x) => x);
       });
     },
   };

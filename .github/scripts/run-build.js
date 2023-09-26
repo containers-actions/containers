@@ -3,20 +3,34 @@ module.exports = async (scripts) => {
 
   const package = RegExp(`^packages/(?<p>[\\w-]+)$`, 'gm').exec(context.payload.label.name).groups['p'];
   const version = RegExp(`^${package}/v?(?<v>.*)$`, 'gm').exec(context.payload.pull_request.head.ref).groups['v'];
+
+  const prFiles = await runtime.listPullRequestFiles(context.payload.number);
   const runtime = require('.github/scripts/runtime.js')(scripts);
-  const namespaces = ['docker.io/fangzhengjin', 'ghcr.io/containers-actions'];
+
+  let subdir = '';
+  prFiles.forEach((x) => {
+    if (x.filename.startsWith(`packages/${package}/`) && x.filename.endsWith('/Dockerfile')) {
+      subdir = x.filename.substring(`packages/${package}/`.length, x.filename.length - '/Dockerfile'.length);
+    }
+  });
+
+  const packagePath = subdir.length == 0 ? package : `${package}/${subdir}`;
+
+  const registrys = runtime.readDockerRegistrys() || [];
+  const imageTags = runtime.readImageTags(packagePath);
+
   const tags = [];
-  for (const ns of namespaces) {
-    tags.push(`--tag=${ns}/${package}:${version}`);
-    tags.push(`--tag=${ns}/${package}:latest`);
-  }
-  let dockerfile = runtime.readDockerfile(package);
+  registrys.forEach((registry) => {
+    imageTags.forEach((tag) => tags.push(`--tag=${registry}/${package}:${tag}`));
+  });
+
+  let dockerfile = runtime.readDockerfile(packagePath);
   const baseImage = RegExp(`^FROM\\s+(?<baseImage>.*)\\s+$`, 'gm').exec(dockerfile).groups['baseImage'];
   const annotations = runtime.getImageAnnotation(package, version, {
     'org.opencontainers.image.base.name': baseImage,
   });
 
-  const platformArgs = runtime.readBuildPlatform(package);
+  const platformArgs = runtime.readBuildPlatform(packagePath);
   const labelArgs = Object.keys(annotations).map((key) => `--label=${key}=${annotations[key]}`);
   const annotationArgs = Object.keys(annotations).map((key) => `annotation-index.${key}=${annotations[key]}`);
 
@@ -37,10 +51,10 @@ module.exports = async (scripts) => {
       context.payload.number,
       `
 Package build success 🎉
-Platform: \`${runtime.readBuildPlatform(package).join(',')}\`
+Platform: \`${runtime.readBuildPlatform(packagePath).join(',')}\`
 You can find it here:
 \`\`\`
-${namespaces.map((ns) => `${ns}/${package}:${version}`).join('\n')}
+${registrys.map((ns) => `${ns}/${package}:${version}`).join('\n')}
 \`\`\`
   `
     )
