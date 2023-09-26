@@ -44,7 +44,7 @@ module.exports = async ({
 
   for (const match of html.matchAll(/<td>(?<v1>\w\d{4}\w)\s+\((?<v2>[\d.]+)\)(?:<br>)?<\/td>/gm)) {
     const { v1, v2 } = match.groups;
-    if (runtime.dirExists(`${runtime.const.PACKAGE_DIR}/${package}/${v1}`)) {
+    if (runtime.isDirectory(`${runtime.const.PACKAGE_DIR}/${package}/${v1}`)) {
       const v3 = patchVersion[v1];
       const versionPrune = `${/(?<v>\d+)/.exec(v1).groups['v']}.${v2}-${v3}`; // 2023.9.14-5
       versions[versionPrune] = {

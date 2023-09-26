@@ -103,7 +103,7 @@ module.exports = (scripts) => {
     readDockerRegistrys: () => {
       return yaml.load(actions.readFile('.github', 'docker-registry.yml')).registrys;
     },
-    dirExists: (path) => {
+    isDirectory: (path) => {
       try {
         return fs.statSync(path).isDirectory();
       } catch (error) {
