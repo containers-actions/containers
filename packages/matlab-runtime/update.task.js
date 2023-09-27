@@ -62,7 +62,7 @@ module.exports = async ({
     }
   }
 
-  const maxVersion = semver.maxSatisfying(Object.keys(versions), '*');
+  const maxVersion = semver.maxSatisfying(Object.keys(versions), '*', { includePrerelease: true });
 
   const upgradeVersions = [];
   for (const v of Object.values(versions)) {
@@ -71,7 +71,7 @@ module.exports = async ({
     const latestVersion = v['version'];
     if (semver.gt(latestVersion, currentVersion)) {
       const tags = [];
-      tags.push(v['v1']);
+      tags.push(`${v['v1']}.${v['v2']}`);
       tags.push(latestVersion);
 
       if (latestVersion == maxVersion) {
