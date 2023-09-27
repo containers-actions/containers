@@ -1,6 +1,6 @@
 FROM bitnami/java:20
 
-ENV MATLAB_RUNTIME_VERSION="2023.23.2-0" \
+ENV MATLAB_RUNTIME_VERSION="2023.8.2-0" \
     MATLAB_RUNTIME_INSTALL_PARAMS="-agreeToLicense yes -destinationFolder /MATLAB_Runtime" \
     MATLAB_RUNTIME_DOWNLOAD_URL="https://ssd.mathworks.com/supportfiles/downloads/R2023b/Release/0/deployment_files/installer/complete/glnxa64/MATLAB_Runtime_R2023b_glnxa64.zip" \
     LD_LIBRARY_PATH="/MATLAB_Runtime/R2023b/runtime/glnxa64:/MATLAB_Runtime/R2023b/bin/glnxa64:/MATLAB_Runtime/R2023b/sys/os/glnxa64:/MATLAB_Runtime/R2023b/extern/bin/glnxa64"
