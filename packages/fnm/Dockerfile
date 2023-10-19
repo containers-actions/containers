@@ -10,7 +10,8 @@ ENV FNM_VERSION="v1.35.1" \
     ELECTRON_MIRROR="https://npmmirror.com/mirrors/electron/" \
     ELECTRON_BUILDER_BINARIES_MIRROR="https://npmmirror.com/mirrors/electron-builder-binaries/" \
     SASS_BINARY_SITE="https://npmmirror.com/mirrors/node-sass" \
-    PYTHON_MIRROR="https://npmmirror.com/mirrors/python"
+    PYTHON_MIRROR="https://npmmirror.com/mirrors/python" \
+    NODE_EXTRA_CA_CERTS=/etc/ssl/certs/ca-certificates.crt
 
 RUN install_packages ca-certificates gnupg unzip git && \
     mkdir $FNM_DIR && \
