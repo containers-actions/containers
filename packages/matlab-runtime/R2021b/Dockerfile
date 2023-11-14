@@ -1,6 +1,6 @@
 FROM bitnami/java:20
 
-ENV MATLAB_RUNTIME_VERSION="2021.9.11-6" \
+ENV MATLAB_RUNTIME_VERSION="2021.9.11-7" \
     MATLAB_RUNTIME_INSTALL_PARAMS="-agreeToLicense yes -destinationFolder /MATLAB_Runtime -mode silent" \
     MATLAB_RUNTIME_DOWNLOAD_URL="https://ssd.mathworks.com/supportfiles/downloads/R2021b/Release/7/deployment_files/installer/complete/glnxa64/MATLAB_Runtime_R2021b_Update_7_glnxa64.zip" \
     LD_LIBRARY_PATH="/MATLAB_Runtime/v911/runtime/glnxa64:/MATLAB_Runtime/v911/bin/glnxa64:/MATLAB_Runtime/v911/sys/os/glnxa64:/MATLAB_Runtime/v911/extern/bin/glnxa64"
