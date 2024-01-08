@@ -11,9 +11,10 @@ ENV FNM_VERSION="v1.35.1" \
     ELECTRON_BUILDER_BINARIES_MIRROR="https://npmmirror.com/mirrors/electron-builder-binaries/" \
     SASS_BINARY_SITE="https://npmmirror.com/mirrors/node-sass" \
     PYTHON_MIRROR="https://npmmirror.com/mirrors/python" \
+    PHANTOMJS_CDNURL="https://npmmirror.com/mirrors/phantomjs" \
     NODE_EXTRA_CA_CERTS=/etc/ssl/certs/ca-certificates.crt
 
-RUN install_packages ca-certificates gnupg unzip git && \
+RUN install_packages ca-certificates gnupg unzip git bzip2 && \
     mkdir $FNM_DIR && \
     curl -fsSL https://fnm.vercel.app/install | bash -s -- --install-dir $FNM_DIR --release $FNM_VERSION --skip-shell && \
     ln -s /fnm/fnm /usr/local/bin/fnm && \
