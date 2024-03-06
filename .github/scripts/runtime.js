@@ -363,7 +363,7 @@ module.exports = (scripts) => {
       const newLatestVersion = semver.clean(latestVersion, { loose: true });
       const newBranch = `${package}/${newLatestVersion}`;
       await actions.autoPullRequest(newBranch, package, newLatestVersion, async () => {
-        await actions.updateFiles(
+        return await actions.updateFiles(
           newBranch,
           // https://docs.github.com/zh/rest/git/trees?apiVersion=2022-11-28#create-a-tree
           Object.keys(uploads).map((x) => ({
