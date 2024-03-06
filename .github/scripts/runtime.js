@@ -147,7 +147,7 @@ module.exports = (scripts) => {
       return (await github.rest.git.getRef({ ...context.repo, ref })).data;
     },
     updateRef: async (ref, sha) => {
-      return (await github.rest.git.updateRef({ ...context.repo, ref, sha })).data;
+      return await github.rest.git.updateRef({ ...context.repo, ref, sha });
     },
     deleteRef: async (ref) => {
       const result = await github.rest.git.deleteRef({ ...context.repo, ref });
