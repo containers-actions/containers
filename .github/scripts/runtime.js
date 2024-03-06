@@ -146,6 +146,13 @@ module.exports = (scripts) => {
     getRef: async (ref) => {
       return (await github.rest.git.getRef({ ...context.repo, ref })).data;
     },
+    updateRef: async (ref, sha) => {
+      return await github.rest.git.updateRef({ ...context.repo, ref, sha });
+    },
+    deleteRef: async (ref) => {
+      const result = await github.rest.git.deleteRef({ ...context.repo, ref });
+      return result.status === 204;
+    },
     getBranch: async (branch) => {
       return await actions.getRef(`heads/${branch}`);
     },
@@ -172,9 +179,8 @@ module.exports = (scripts) => {
       }
       return false;
     },
-    deleteRef: async (ref) => {
-      const result = await github.rest.git.deleteRef({ ...context.repo, ref });
-      return result.status === 204;
+    updateBranch: async (branch, sha) => {
+      return await actions.updateRef(`heads/${branch}`, sha);
     },
     deleteBranch: async (branch) => await actions.deleteRef(`heads/${branch}`),
     deleteTag: async (tag) => await actions.deleteRef(`tags/${tag}`),
@@ -229,6 +235,28 @@ module.exports = (scripts) => {
         content: Buffer.from(content).toString('base64'),
       });
       return result.status === 200 || result.status === 201;
+    },
+    /**
+     * 更新文件内容并将更改提交到 GitHub 存储库。
+     *
+     * @param {[{path: string, content: string, mode: string, type: string}]} files              要更新的文件信息
+     * @param {string} message      文件更新的提交消息
+     * @returns {Promise<Object>}   一个解析为 GitHub API 响应对象的 Promise
+     */
+    updateFiles: async (branch, files, message) => {
+      const ref = await actions.getBranch(branch);
+      const tree = await github.rest.git.createTree({
+        ...context.repo,
+        base_tree: ref.object.sha,
+        tree: files,
+      });
+      const commit = await github.rest.git.createCommit({
+        ...context.repo,
+        message,
+        tree: tree.data.sha,
+        parents: [ref.object.sha],
+      });
+      return (await actions.updateBranch(branch, commit.data.sha)).status === 200;
     },
     // ============================== Issue / PullRequest ==============================
     /**
@@ -335,19 +363,30 @@ module.exports = (scripts) => {
       const newLatestVersion = semver.clean(latestVersion, { loose: true });
       const newBranch = `${package}/${newLatestVersion}`;
       await actions.autoPullRequest(newBranch, package, newLatestVersion, async () => {
-        return (
-          await actions.promiseStep([
-            ...Object.keys(uploads).map(
-              (path) => async () =>
-                actions.updateFile(
-                  newBranch,
-                  `${actions.const.PACKAGE_DIR}/${package}/${path}`,
-                  uploads[path],
-                  `Update ${package} version to ${newLatestVersion}`
-                )
-            ),
-          ])
-        ).every((x) => x);
+        return await actions.updateFiles(
+          newBranch,
+          // https://docs.github.com/zh/rest/git/trees?apiVersion=2022-11-28#create-a-tree
+          Object.keys(uploads).map((x) => ({
+            path: `${actions.const.PACKAGE_DIR}/${package}/${x}`,
+            mode: '100644',
+            type: 'blob',
+            content: uploads[x],
+          })),
+          `Update ${package} version to ${newLatestVersion}`
+        );
+        // return (
+        //   await actions.promiseStep([
+        //     ...Object.keys(uploads).map(
+        //       (path) => async () =>
+        //         actions.updateFile(
+        //           newBranch,
+        //           `${actions.const.PACKAGE_DIR}/${package}/${path}`,
+        //           uploads[path],
+        //           `Update ${package} version to ${newLatestVersion}`
+        //         )
+        //     ),
+        //   ])
+        // ).every((x) => x);
       });
     },
   };
