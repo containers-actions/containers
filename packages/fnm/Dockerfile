@@ -2,7 +2,7 @@ FROM bitnami/os-shell:11
 
 USER root
 
-ENV FNM_VERSION="v1.36.0" \
+ENV FNM_VERSION="v1.37.0" \
     FNM_DIR="/fnm" \
     XDG_RUNTIME_DIR="/fnm" \
     FNM_MULTISHELL_PATH=/fnm/multishells \
