@@ -2,9 +2,9 @@ FROM bitnami/java:1.8
 
 ENV LANG=zh_CN.UTF-8 \
     LC_ALL=zh_CN.UTF-8 \
-    LIBRE_OFFICE_VERSION="7.6.7" \
+    LIBRE_OFFICE_VERSION="24.2.4" \
     KKFILEVIEW_BIN_FOLDER="/opt/KKFileView" \
-    KK_OFFICE_HOME="/opt/libreoffice7.6" \
+    KK_OFFICE_HOME="/opt/libreoffice24.2" \
     JAVA_TOOL_OPTIONS="-Xmx512m -Xmx2048m -XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap -Dsun.jnu.encoding=UTF-8 -Dfile.encoding=UTF-8 -Duser.timezone=Asia/Shanghai"
 
 WORKDIR /opt/KKFileView
