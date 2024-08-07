@@ -1,6 +1,6 @@
 FROM bitnami/minideb:bookworm
 
-ENV SUBVERSION_VERSION="1.14.2-4+b2"
+ENV SUBVERSION_VERSION=""
 
 RUN install_packages subversion=${SUBVERSION_VERSION}
 
