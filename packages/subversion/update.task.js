@@ -10,6 +10,8 @@ module.exports = async ({
   const $ = cheerio.load(html);
   const latestVersion = $($('.vcurrent')[0]).text().trim();
 
+  if (latestVersion === '') return null;
+
   let dockerfile = runtime.readDockerfile(package);
   const currentVersion = runtime.getVersion('SUBVERSION_VERSION', dockerfile);
 
