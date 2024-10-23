@@ -392,8 +392,15 @@ module.exports = (scripts) => {
       });
     },
     latestDebianPackageVersion: async (packageName, debianVersion = 'bookworm') => {
+      const dockerPsResult = await exec.getExecOutput(`docker ps -f name=debian-${debianVersion} -q`);
+      if (dockerPsResult.stdout === '') {
+        await exec.exec(
+          `docker run --rm --name debian-${debianVersion} bitnami/minideb:${debianVersion} sleep 300 > /dev/null 2>&1`
+        );
+        core.info(`debian-${debianVersion} 环境已创建`);
+      }
       const result = await exec.getExecOutput(
-        `docker run --rm bitnami/minideb:${debianVersion} sh -c "apt update > /dev/null 2>&1 && apt-cache policy ${packageName} | grep Candidate | awk '{print $2}' | tr -d '\\n'" > /dev/null 2>&1`
+        `docker exec debian-${debianVersion} sh -c "apt update > /dev/null 2>&1 && apt-cache policy ${packageName} | grep Candidate | awk '{print $2}' | tr -d '\\n'"`
       );
       if (result.exitCode === 0 && result.stdout !== '') {
         return result.stdout;
