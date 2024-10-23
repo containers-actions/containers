@@ -2,6 +2,7 @@ const { version } = require('os');
 
 module.exports = (scripts) => {
   const { github, context, core, glob, io, exec, fetch, require } = scripts;
+  const { PassThrough } = require('stream');
   const fs = require('fs');
   const semver = require('semver');
   const yaml = require('js-yaml');
@@ -395,7 +396,7 @@ module.exports = (scripts) => {
       const result = await exec.getExecOutput(
         `docker run --rm bitnami/minideb:${debianVersion} sh -c "apt update && apt-cache policy ${packageName} | grep Candidate | awk '{print $2}' | tr -d '\\n'"`,
         [],
-        { silent: true }
+        { silent: true, outStream: new PassThrough() }
       );
       if (result.exitCode === 0 && result.stdout !== '') {
         return result.stdout;
