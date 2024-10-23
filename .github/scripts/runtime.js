@@ -1,3 +1,5 @@
+const { version } = require('os');
+
 module.exports = (scripts) => {
   const { github, context, core, glob, io, exec, fetch, require } = scripts;
   const fs = require('fs');
@@ -388,6 +390,22 @@ module.exports = (scripts) => {
         //   ])
         // ).every((x) => x);
       });
+    },
+    latestDebianPackageVersion: async (packageName, debianVersion = 'bookworm') => {
+      const result = await exec.getExecOutput(
+        `docker run --rm bitnami/minideb:${debianVersion} sh -c "apt update > /dev/null 2>&1 && apt-cache policy ${packageName} | grep Candidate | awk '{print $2}' | tr -d '\\n'"`
+      );
+      if (result.exitCode === 0 && result.stdout !== '') {
+        return result.stdout;
+      } else {
+        return '';
+      }
+    },
+    debianPackageVersionClean: (version) => {
+      let cleanedVersion = version;
+      cleanedVersion = cleanedVersion.slice(cleanedVersion.indexOf(':') + 1);
+      cleanedVersion = cleanedVersion.replace('+', '-');
+      return cleanedVersion;
     },
   };
   return actions;

@@ -4,22 +4,19 @@ module.exports = async ({
   runtime,
 }) => {
   const semver = require('semver');
-  const cheerio = require('cheerio');
-  let response = await runtime.retryFetch('https://packages.debian.org/bookworm/subversion');
-  const html = await response.text();
-  const $ = cheerio.load(html);
-  const latestVersion = $($('.vcurrent')[0]).text().trim();
+  const latestVersion = await runtime.latestDebianPackageVersion('subversion');
 
   if (latestVersion === '') return null;
 
   let dockerfile = runtime.readDockerfile(package);
   const currentVersion = runtime.getVersion('SUBVERSION_VERSION', dockerfile);
 
-  if (currentVersion != latestVersion) {
+  if (semver.gt(latestVersion, currentVersion)) {
     dockerfile = runtime.replaceVariable('SUBVERSION_VERSION', latestVersion, dockerfile);
-    await runtime.updateFileAndCreatePullRequest(package, latestVersion, {
+    const cleanedVersion = runtime.debianPackageVersionClean(latestVersion);
+    await runtime.updateFileAndCreatePullRequest(package, cleanedVersion, {
       Dockerfile: dockerfile,
-      'tags.yml': runtime.dumpImageTags([semver.clean(latestVersion, { loose: true }), 'latest']),
+      'tags.yml': runtime.dumpImageTags([semver.clean(cleanedVersion, { loose: true }), 'latest']),
     });
     return latestVersion;
   }
