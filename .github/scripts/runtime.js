@@ -392,7 +392,7 @@ module.exports = (scripts) => {
       });
     },
     latestDebianPackageVersion: async (packageName, debianVersion = 'bookworm') => {
-      await exec.exec(`docker pull bitnami/minideb:${debianVersion} > /dev/null 2>&1`);
+      await exec.exec(`docker pull bitnami/minideb:${debianVersion} -q`);
       const result = await exec.getExecOutput(
         `docker run --rm bitnami/minideb:${debianVersion} sh -c "apt update > /dev/null 2>&1 && apt-cache policy ${packageName} | grep Candidate | awk '{print $2}' | tr -d '\\n'"`
       );
