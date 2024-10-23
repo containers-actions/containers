@@ -11,7 +11,7 @@ module.exports = async ({
   let dockerfile = runtime.readDockerfile(package);
   const currentVersion = runtime.getVersion('SUBVERSION_VERSION', dockerfile);
 
-  if (semver.gt(latestVersion, currentVersion)) {
+  if (latestVersion != currentVersion) {
     dockerfile = runtime.replaceVariable('SUBVERSION_VERSION', latestVersion, dockerfile);
     const cleanedVersion = runtime.debianPackageVersionClean(latestVersion);
     await runtime.updateFileAndCreatePullRequest(package, cleanedVersion, {
