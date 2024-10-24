@@ -4,8 +4,7 @@ ENV KKFILEVIEW_VERSION="v4.3.0"
 
 WORKDIR /workspace
 
-RUN install_packages git && \
-git clone -b $KKFILEVIEW_VERSION --depth=1 https://github.com/kekingcn/kkFileView.git && \
+RUN git clone -b $KKFILEVIEW_VERSION --depth=1 https://github.com/kekingcn/kkFileView.git && \
 cd /workspace/kkFileView && \
 mvn clean package -DskipTests -Dassembly.skipAssembly=true && \
 mkdir /workspace/buildDir && \
