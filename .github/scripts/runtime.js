@@ -143,7 +143,7 @@ module.exports = (scripts) => {
      * @return {string}                               最新版本发布的名称
      */
     getLatestRelease: async ({ owner, repo }) => {
-      return (await github.rest.repos.getLatestRelease({ owner, repo })).data.name;
+      return (await github.rest.repos.getLatestRelease({ owner, repo })).data.tag_name;
     },
     // ============================== Reference ==============================
     getRef: async (ref) => {
