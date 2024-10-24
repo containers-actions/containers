@@ -1,6 +1,6 @@
 FROM maven:3-eclipse-temurin-8 AS builder
 
-ENV KKFILEVIEW_VERSION="v4.3.0"
+ENV KKFILEVIEW_VERSION="v4.4.0-beta"
 
 WORKDIR /workspace
 
@@ -14,7 +14,7 @@ java -Djarmode=layertools -jar /workspace/kkFileView/server/target/kkFileView-*.
 
 FROM ghcr.io/containers-actions/libreoffice-nogui
 
-ENV KKFILEVIEW_VERSION="v4.3.0" \
+ENV KKFILEVIEW_VERSION="v4.4.0-beta" \
     KKFILEVIEW_BIN_FOLDER="/opt/KKFileView/bin" \
     JAVA_TOOL_OPTIONS="-Xmx512m -XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap -Dsun.jnu.encoding=UTF-8 -Dfile.encoding=UTF-8 -Duser.timezone=Asia/Shanghai"
 
