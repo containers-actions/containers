@@ -56,7 +56,7 @@ module.exports = (scripts) => {
       core.info(`┗${'━'.repeat(width - 2)}┛`);
     },
     getVersion: (key, content) => {
-      const regex = new RegExp(`(${key})="?(?<version>v?[\\d\\w.+-\+:]+)"?`, 'gm');
+      const regex = new RegExp(`(${key})="?(?<version>v?[\\d\\w.+-:]+)"?`, 'gm');
       return regex.exec(content).groups['version'];
     },
     replaceVariable: (key, value, content) => {
