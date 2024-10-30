@@ -6,7 +6,7 @@ module.exports = async ({
   const semver = require('semver');
   let dockerfile = runtime.readDockerfile(package);
   const currentVersion = runtime.getVersion('FNM_VERSION', dockerfile);
-  const latestVersion = await runtime.getLatestRelease({ owner: 'Schniz', repo: 'fnm' });
+  const latestVersion = await runtime.getLatestReleaseTagName({ owner: 'Schniz', repo: 'fnm' });
   if (semver.lt(currentVersion, latestVersion)) {
     dockerfile = runtime.replaceVariable('FNM_VERSION', latestVersion, dockerfile);
     await runtime.updateFileAndCreatePullRequest(package, latestVersion, {

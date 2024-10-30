@@ -140,10 +140,18 @@ module.exports = (scripts) => {
      * 获取指定所有者和仓库的最新版本发布名称。
      *
      * @param {{owner: string, repo: string}} params  获取最新版本发布的参数
-     * @return {string}                               最新版本发布的名称
      */
-    getLatestRelease: async ({ owner, repo }) => {
-      return (await github.rest.repos.getLatestRelease({ owner, repo })).data.tag_name;
+    getLatestReleaseData: async ({ owner, repo }) => {
+      return (await github.rest.repos.getLatestRelease({ owner, repo })).data;
+    },
+    /**
+     * 获取指定所有者和仓库的最新版本发布名称。
+     *
+     * @param {{owner: string, repo: string}} params  获取最新版本发布的参数
+     * @return {string}                               最新版本发布tag的名称
+     */
+    getLatestReleaseTagName: async ({ owner, repo }) => {
+      const tagName = (await getLatestReleaseData({ owner, repo })).tag_name;
     },
     // ============================== Reference ==============================
     getRef: async (ref) => {

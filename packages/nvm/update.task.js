@@ -6,7 +6,7 @@ module.exports = async ({
   const semver = require('semver');
   let dockerfile = runtime.readDockerfile(package);
   const currentVersion = runtime.getVersion('NVM_VERSION', dockerfile);
-  const latestVersion = await runtime.getLatestRelease({ owner: 'nvm-sh', repo: 'nvm' });
+  const latestVersion = await runtime.getLatestReleaseTagName({ owner: 'nvm-sh', repo: 'nvm' });
   if (semver.lt(currentVersion, latestVersion)) {
     dockerfile = runtime.replaceVariable('NVM_VERSION', latestVersion, dockerfile);
     await runtime.updateFileAndCreatePullRequest(package, latestVersion, {
