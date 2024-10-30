@@ -1,6 +1,6 @@
 FROM bitnami/node:18
 
-ENV CNPMCORE_VERSION="v3.64.0" \
+ENV CNPMCORE_VERSION="v3.65.0" \
     NODE_ENV=production \
     EGG_SERVER_ENV=prod
 
