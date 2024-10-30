@@ -11,7 +11,7 @@ RUN curl -L https://github.com/cnpm/cnpmcore/archive/refs/tags/${CNPMCORE_VERSIO
     rm -rf /tmp/cnpmcore.tar.gz && \
     npm install -g npminstall typescript@5.2.2 && \
     npminstall && \
-    find . -name "*.ts" -type f -exec sh -c 'for file; do { echo "// @ts-nocheck"; cat "$file"; } > "$file.tmp" && mv "$file.tmp" "$file"; done' sh {} + && \
+    find . -name "*.ts" -exec sed -i '1s/^/\/\/ @ts-nocheck\n/' {} + && \
     npm run tsc:prod && \
     npm cache clean --force && \
     rm -rf /root/.npm
