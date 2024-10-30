@@ -388,7 +388,7 @@ module.exports = (scripts) => {
             type: 'blob',
             content: uploads[x],
           })),
-          `Update ${package} version to ${newLatestVersion}`
+          `build: Update ${package} version to ${newLatestVersion}`
         );
         // return (
         //   await actions.promiseStep([
