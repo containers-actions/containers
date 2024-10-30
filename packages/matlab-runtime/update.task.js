@@ -67,7 +67,7 @@ module.exports = async ({
   const upgradeVersions = [];
   for (const v of Object.values(versions)) {
     let dockerfile = runtime.readDockerfile(`${package}/${v['v1Raw']}`);
-    const currentVersion = runtime.getVersion('MATLAB_RUNTIME_VERSION', dockerfile);
+    const currentVersion = runtime.getDockerfileEnvVersion('MATLAB_RUNTIME_VERSION', dockerfile);
     const latestVersion = v['version'];
     if (semver.gt(latestVersion, currentVersion)) {
       const tags = [];

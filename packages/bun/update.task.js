@@ -5,10 +5,10 @@ module.exports = async ({
 }) => {
   const semver = require('semver');
   let dockerfile = runtime.readDockerfile(package);
-  const currentVersion = runtime.getDockerfileEnvVersion('FNM_VERSION', dockerfile);
-  const latestVersion = await runtime.getLatestReleaseTagName({ owner: 'Schniz', repo: 'fnm' });
+  const currentVersion = runtime.getDockerfileEnvVersion('BUN_VERSION', dockerfile);
+  const latestVersion = await runtime.getLatestReleaseTagName({ owner: 'oven-sh', repo: 'bun' });
   if (semver.lt(currentVersion, latestVersion)) {
-    dockerfile = runtime.replaceVariable('FNM_VERSION', latestVersion, dockerfile);
+    dockerfile = runtime.replaceVariable('BUN_VERSION', latestVersion, dockerfile);
     await runtime.updateFileAndCreatePullRequest(package, latestVersion, {
       Dockerfile: dockerfile,
       'tags.yml': runtime.dumpImageTags([semver.clean(latestVersion, { loose: true }), 'latest']),

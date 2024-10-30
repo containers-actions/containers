@@ -9,7 +9,7 @@ module.exports = async ({
   if (latestVersion === '') return null;
 
   let dockerfile = runtime.readDockerfile(package);
-  const currentVersion = runtime.getVersion('LIBREOFFICE_VERSION', dockerfile);
+  const currentVersion = runtime.getDockerfileEnvVersion('LIBREOFFICE_VERSION', dockerfile);
 
   if (latestVersion != currentVersion) {
     dockerfile = runtime.replaceVariable('LIBREOFFICE_VERSION', latestVersion, dockerfile);

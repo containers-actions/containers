@@ -9,7 +9,7 @@ module.exports = async ({
   if (latestVersion === '') return null;
 
   let dockerfile = runtime.readDockerfile(package);
-  const currentVersion = runtime.getVersion('SUBVERSION_VERSION', dockerfile);
+  const currentVersion = runtime.getDockerfileEnvVersion('SUBVERSION_VERSION', dockerfile);
 
   if (latestVersion != currentVersion) {
     dockerfile = runtime.replaceVariable('SUBVERSION_VERSION', latestVersion, dockerfile);

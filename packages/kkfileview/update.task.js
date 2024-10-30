@@ -5,7 +5,7 @@ module.exports = async ({
 }) => {
   const semver = require('semver');
   let dockerfile = runtime.readDockerfile(package);
-  const currentVersion = runtime.getVersion('KKFILEVIEW_VERSION', dockerfile);
+  const currentVersion = runtime.getDockerfileEnvVersion('KKFILEVIEW_VERSION', dockerfile);
   const latestVersion = await runtime.getLatestReleaseTagName({ owner: 'kekingcn', repo: 'kkFileView' });
   if (semver.lt(currentVersion, latestVersion)) {
     dockerfile = runtime.replaceVariable('KKFILEVIEW_VERSION', latestVersion, dockerfile);

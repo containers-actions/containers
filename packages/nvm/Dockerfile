@@ -1,4 +1,4 @@
-FROM bitnami/os-shell:11
+FROM bitnami/os-shell
 
 USER root
 

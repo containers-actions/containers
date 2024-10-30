@@ -55,8 +55,12 @@ module.exports = (scripts) => {
       core.info(`┃${blank}${context}${blank}┃`);
       core.info(`┗${'━'.repeat(width - 2)}┛`);
     },
-    getVersion: (key, content) => {
+    getDockerfileEnvVersion: (key, content) => {
       const regex = new RegExp(`(${key})="?(?<version>v?[\\d\\w.+-:]+)"?`, 'gm');
+      return regex.exec(content).groups['version'];
+    },
+    getVersion: (content) => {
+      const regex = new RegExp(`(?<version>v?[\\d.]+-?[\\w+-]+)`, 'g');
       return regex.exec(content).groups['version'];
     },
     replaceVariable: (key, value, content) => {
@@ -152,6 +156,7 @@ module.exports = (scripts) => {
      */
     getLatestReleaseTagName: async ({ owner, repo }) => {
       const tagName = (await getLatestReleaseData({ owner, repo })).tag_name;
+      return getVersion(tagName)
     },
     // ============================== Reference ==============================
     getRef: async (ref) => {
