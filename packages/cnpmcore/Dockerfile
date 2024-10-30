@@ -11,6 +11,7 @@ RUN curl -L https://github.com/cnpm/cnpmcore/archive/refs/tags/${CNPMCORE_VERSIO
     rm -rf /tmp/cnpmcore.tar.gz && \
     npm install && \
     npm install -g typescript@5.2.2 && \
+    npm run tsc:prod && \
     npm cache clean --force && \
     rm -rf /root/.npm
 
