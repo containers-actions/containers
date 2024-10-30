@@ -155,8 +155,8 @@ module.exports = (scripts) => {
      * @return {string}                               最新版本发布tag的名称
      */
     getLatestReleaseTagName: async ({ owner, repo }) => {
-      const tagName = (await getLatestReleaseData({ owner, repo })).tag_name;
-      return getVersion(tagName)
+      const tagName = (await actions.getLatestReleaseData({ owner, repo })).tag_name;
+      return actions.getVersion(tagName)
     },
     // ============================== Reference ==============================
     getRef: async (ref) => {
