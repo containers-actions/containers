@@ -6,7 +6,7 @@ module.exports = async ({
   const semver = require('semver');
   let dockerfile = runtime.readDockerfile(package);
   const currentVersion = runtime.getDockerfileEnvVersion('CNPMCORE_VERSION', dockerfile);
-  const latestVersion = await runtime.getLatestReleaseTagName({ owner: 'cnpm', repo: 'cnpmcore' });
+  const latestVersion = await runtime.getLatestReleaseTagName({ owner: 'containers-actions', repo: 'cnpmcore' });
   if (semver.lt(currentVersion, latestVersion)) {
     dockerfile = runtime.replaceVariable('CNPMCORE_VERSION', latestVersion, dockerfile);
     await runtime.updateFileAndCreatePullRequest(package, latestVersion, {
