@@ -1,6 +1,6 @@
 FROM node:22
 
-ENV CNPMCORE_VERSION="v3.65.0" \
+ENV CNPMCORE_VERSION="v3.66.0" \
     NODE_ENV=production \
     EGG_SERVER_ENV=prod
 
