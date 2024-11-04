@@ -2,7 +2,9 @@
 
 ## 如何使用
 
-参考 [配置项](https://github.com/cnpm/cnpmcore/blob/master/config/config.default.ts) 编写 `config.prod.js` 并挂载到容器中 `/opt/cnpmcore/config/config.prod.js`
+1. 手动初始化数据库 [SQL 脚本](https://github.com/cnpm/cnpmcore/tree/master/sql)
+2. 参考 [配置项](https://github.com/cnpm/cnpmcore/blob/master/config/config.default.ts) 编写 `config.prod.js` 并挂载到容器中 `/opt/cnpmcore/config/config.prod.js`
+3. [创建用户](https://github.com/cnpm/cnpmcore/blob/master/docs/registry-api.md#add-a-new-user), `username` 和 `email` 与下方示例配置中的 `admins` 属性中的配置一致, 该用户即有推送package权限
 
 ## 示例
 
