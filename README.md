@@ -6,7 +6,7 @@
 | [cnpmcore](https://github.com/containers-actions/containers/pkgs/container/cnpmcore)                   | [README.md](packages/cnpmcore) |  ✅  |
 | [fnm](https://github.com/containers-actions/containers/pkgs/container/fnm)                             |               -                |  ✅  |
 | [kkfileview](https://github.com/containers-actions/containers/pkgs/container/kkfileview)               |               -                |  ✅  |
-| [kkfileview-base](https://github.com/containers-actions/containers/pkgs/container/kkfileview-base)     |               -                |  ⚠️  |
+| [kkfileview-base](https://github.com/containers-actions/containers/pkgs/container/kkfileview-base)     |          [Deprecated]          |  ⚠️  |
 | [libreoffice-nogui](https://github.com/containers-actions/containers/pkgs/container/libreoffice-nogui) |               -                |  ✅  |
 | [matlab-runtime](https://github.com/containers-actions/containers/pkgs/container/matlab-runtime)       |               -                |  ✅  |
 | [nvm](https://github.com/containers-actions/containers/pkgs/container/nvm)                             |               -                |  ✅  |
