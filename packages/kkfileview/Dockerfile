@@ -1,6 +1,6 @@
 FROM maven:3-eclipse-temurin-8 AS builder
 
-ENV KKFILEVIEW_VERSION="v4.4.0-beta"
+ENV KKFILEVIEW_VERSION="v4.4.0"
 
 WORKDIR /workspace
 
@@ -17,7 +17,7 @@ curl -kL https://repo1.maven.org/maven2/net/sf/sevenzipjbinding/sevenzipjbinding
 
 FROM ghcr.io/containers-actions/libreoffice-nogui
 
-ENV KKFILEVIEW_VERSION="v4.4.0-beta" \
+ENV KKFILEVIEW_VERSION="v4.4.0" \
     KKFILEVIEW_BIN_FOLDER="/opt/KKFileView/bin" \
     JAVA_TOOL_OPTIONS="-Xmx512m -XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap -Dsun.jnu.encoding=UTF-8 -Dfile.encoding=UTF-8 -Duser.timezone=Asia/Shanghai"
 
