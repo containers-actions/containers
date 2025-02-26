@@ -12,7 +12,7 @@ RUN export DEBIAN_FRONTEND=noninteractive && \
     # sed -i 's/deb.debian.org/mirrors.cloud.tencent.com/g' /etc/apt/sources.list && \
     # sed -i 's/security.debian.org\//mirrors.cloud.tencent.com\/debian-security/g' /etc/apt/sources.list && \
     sed -i 's/main/main non-free contrib/g' /etc/apt/sources.list && \
-    install_packages ca-certificates xfonts-utils fontconfig ttf-mscorefonts-installer ttf-wqy-microhei ttf-wqy-zenhei xfonts-wqy libreoffice-nogui && \
+    install_packages ca-certificates xfonts-utils fontconfig ttf-mscorefonts-installer ttf-wqy-microhei ttf-wqy-zenhei xfonts-wqy fonts-dejavu libreoffice-nogui && \
     ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \
     localedef -c -f UTF-8 -i zh_CN zh_CN.UTF-8 && \
     echo 'zh_CN.UTF-8 UTF-8' >> /etc/locale.gen && locale-gen && \
