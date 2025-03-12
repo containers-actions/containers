@@ -2,7 +2,7 @@ FROM bitnami/os-shell
 
 USER root
 
-ENV NVM_VERSION="v0.40.1" \
+ENV NVM_VERSION="v0.40.2" \
     NVM_NODEJS_ORG_MIRROR="https://npmmirror.com/mirrors/node" \
     NVM_IOJS_ORG_MIRROR="https://npmmirror.com/mirrors/iojs" \
     ELECTRON_MIRROR="https://npmmirror.com/mirrors/electron/" \
