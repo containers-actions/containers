@@ -13,7 +13,8 @@ cd /workspace/buildDir && \
 java -Djarmode=layertools -jar /workspace/kkFileView/server/target/kkFileView-*.jar extract && \
 # remove FileController IndexController
 ls -al /workspace/buildDir/application/BOOT-INF/classes/cn/keking/web/controller && \
-rm -rf /workspace/buildDir/application/BOOT-INF/classes/cn/keking/web/controller/{IndexController.class,FileController.class} && \
+rm -rf /workspace/buildDir/application/BOOT-INF/classes/cn/keking/web/controller/IndexController.class && \
+rm -rf /workspace/buildDir/application/BOOT-INF/classes/cn/keking/web/controller/FileController.class && \
 ls -al /workspace/buildDir/application/BOOT-INF/classes/cn/keking/web/controller && \
 # remove sourcemap
 find /workspace/buildDir -type f -name "*.js.map" -exec rm -f {} \; && \
