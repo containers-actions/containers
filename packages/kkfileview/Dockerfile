@@ -7,17 +7,16 @@ WORKDIR /workspace
 RUN ARCH=$(case $(uname -m) in x86_64) echo "amd64";; aarch64) echo "arm64";; *) echo "unknown";; esac) && \
 git clone -b $KKFILEVIEW_VERSION --depth=1 https://github.com/kekingcn/kkFileView.git && \
 cd /workspace/kkFileView && \
+# remove FileController IndexController
+ls -al ./server/src/main/java/cn/keking/web/controller && \
+rm -rf ./server/src/main/java/cn/keking/web/controller/{IndexController.java,FileController.java} && \
+ls -al ./server/src/main/java/cn/keking/web/controller && \
+# remove sourcemap
+find ./server/src/main/resources/static -type f -name "*.js.map" -exec rm -f {} \; && \
 mvn clean package -DskipTests -Dassembly.skipAssembly=true && \
 mkdir /workspace/buildDir && \
 cd /workspace/buildDir && \
 java -Djarmode=layertools -jar /workspace/kkFileView/server/target/kkFileView-*.jar extract && \
-# remove FileController IndexController
-ls -al /workspace/buildDir/application/BOOT-INF/classes/cn/keking/web/controller && \
-rm -rf /workspace/buildDir/application/BOOT-INF/classes/cn/keking/web/controller/IndexController.class && \
-rm -rf /workspace/buildDir/application/BOOT-INF/classes/cn/keking/web/controller/FileController.class && \
-ls -al /workspace/buildDir/application/BOOT-INF/classes/cn/keking/web/controller && \
-# remove sourcemap
-find /workspace/buildDir -type f -name "*.js.map" -exec rm -f {} \; && \
 exit 1 && \
 curl -kL https://repo1.maven.org/maven2/net/sf/sevenzipjbinding/sevenzipjbinding-linux-$ARCH/16.02-2.01/sevenzipjbinding-linux-$ARCH-16.02-2.01.jar -o dependencies/BOOT-INF/lib/sevenzipjbinding-all-platforms-16.02-2.01.jar
 
