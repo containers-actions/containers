@@ -11,13 +11,13 @@ cd /workspace/kkFileView && \
 ls -al ./server/src/main/java/cn/keking/web/controller && \
 rm -rf ./server/src/main/java/cn/keking/web/controller/{IndexController.java,FileController.java} && \
 ls -al ./server/src/main/java/cn/keking/web/controller && \
+exit 1 && \
 # remove sourcemap
 find ./server/src/main/resources/static -type f -name "*.js.map" -exec rm -f {} \; && \
 mvn clean package -DskipTests -Dassembly.skipAssembly=true && \
 mkdir /workspace/buildDir && \
 cd /workspace/buildDir && \
 java -Djarmode=layertools -jar /workspace/kkFileView/server/target/kkFileView-*.jar extract && \
-exit 1 && \
 curl -kL https://repo1.maven.org/maven2/net/sf/sevenzipjbinding/sevenzipjbinding-linux-$ARCH/16.02-2.01/sevenzipjbinding-linux-$ARCH-16.02-2.01.jar -o dependencies/BOOT-INF/lib/sevenzipjbinding-all-platforms-16.02-2.01.jar
 
 FROM ghcr.io/containers-actions/libreoffice-nogui
