@@ -1,6 +1,6 @@
 FROM maven:3-eclipse-temurin-8 AS builder
 
-ENV KKFILEVIEW_VERSION="v4.4.0"
+ENV KKFILEVIEW_VERSION="v4.3.0"
 
 WORKDIR /workspace
 
@@ -12,6 +12,7 @@ rm -rf /workspace/kkFileView/server/src/main/java/cn/keking/web/controller/Index
 rm -rf /workspace/kkFileView/server/src/main/java/cn/keking/web/controller/FileController.java && \
 # remove sourcemap
 find /workspace/kkFileView/server/src/main/resources/static -type f -name "*.js.map" -exec rm -f {} \; && \
+find /workspace/kkFileView/server/src/main/resources/static -type f \( -name "*.html" -o -name "*.ftl" \) -exec sed -i -E 's/(<p>)?\S+\s+\S+https:\/\/t\.zsxq\.com\/09ZHSXbsQ<\/a><br>(<\/p>)?//g' {} + && \
 mvn clean package -DskipTests -Dassembly.skipAssembly=true && \
 mkdir /workspace/buildDir && \
 cd /workspace/buildDir && \
@@ -20,7 +21,7 @@ curl -kL https://repo1.maven.org/maven2/net/sf/sevenzipjbinding/sevenzipjbinding
 
 FROM ghcr.io/containers-actions/libreoffice-nogui
 
-ENV KKFILEVIEW_VERSION="v4.4.0" \
+ENV KKFILEVIEW_VERSION="v4.3.0" \
     KKFILEVIEW_BIN_FOLDER="/opt/KKFileView/bin" \
     JAVA_TOOL_OPTIONS="-Xmx512m -XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap -Dsun.jnu.encoding=UTF-8 -Dfile.encoding=UTF-8 -Duser.timezone=Asia/Shanghai"
 
