@@ -8,12 +8,13 @@ RUN ARCH=$(case $(uname -m) in x86_64) echo "amd64";; aarch64) echo "arm64";; *)
 git clone -b $KKFILEVIEW_VERSION --depth=1 https://github.com/kekingcn/kkFileView.git && \
 cd /workspace/kkFileView && \
 # remove FileController IndexController
-ls -al ./server/src/main/java/cn/keking/web/controller && \
-rm -rf ./server/src/main/java/cn/keking/web/controller/{IndexController.java,FileController.java} && \
-ls -al ./server/src/main/java/cn/keking/web/controller && \
-exit 1 && \
+ls -al /workspace/kkFileView/server/src/main/java/cn/keking/web/controller && \
+rm -rf /workspace/kkFileView/server/src/main/java/cn/keking/web/controller/IndexController.java && \
+rm -rf /workspace/kkFileView/server/src/main/java/cn/keking/web/controller/FileController.java && \
+ls -al /workspace/kkFileView/server/src/main/java/cn/keking/web/controller && \
 # remove sourcemap
-find ./server/src/main/resources/static -type f -name "*.js.map" -exec rm -f {} \; && \
+find /workspace/kkFileView/server/src/main/resources/static -type f -name "*.js.map" -exec rm -f {} \; && \
+exit 1 && \
 mvn clean package -DskipTests -Dassembly.skipAssembly=true && \
 mkdir /workspace/buildDir && \
 cd /workspace/buildDir && \
