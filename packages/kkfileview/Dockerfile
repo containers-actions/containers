@@ -11,12 +11,13 @@ mvn clean package -DskipTests -Dassembly.skipAssembly=true && \
 mkdir /workspace/buildDir && \
 cd /workspace/buildDir && \
 java -Djarmode=layertools -jar /workspace/kkFileView/server/target/kkFileView-*.jar extract && \
-# remove sourcemap
-find /workspace/buildDir -type f -name "*.js.map" -exec rm -f {} \; && \
 # remove FileController IndexController
 ls -al /workspace/buildDir/application/BOOT-INF/classes/cn/keking/web/controller && \
-rm -rf /workspace/buildDir/application/BOOT-INF/classes/cn/keking/web/controller/{FileController.class,IndexController.class} && \
+rm -rf /workspace/buildDir/application/BOOT-INF/classes/cn/keking/web/controller/{IndexController.class,FileController.class} && \
 ls -al /workspace/buildDir/application/BOOT-INF/classes/cn/keking/web/controller && \
+# remove sourcemap
+find /workspace/buildDir -type f -name "*.js.map" -exec rm -f {} \; && \
+exit 1 && \
 curl -kL https://repo1.maven.org/maven2/net/sf/sevenzipjbinding/sevenzipjbinding-linux-$ARCH/16.02-2.01/sevenzipjbinding-linux-$ARCH-16.02-2.01.jar -o dependencies/BOOT-INF/lib/sevenzipjbinding-all-platforms-16.02-2.01.jar
 
 FROM ghcr.io/containers-actions/libreoffice-nogui
