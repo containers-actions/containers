@@ -12,7 +12,6 @@ rm -rf /workspace/kkFileView/server/src/main/java/cn/keking/web/controller/Index
 rm -rf /workspace/kkFileView/server/src/main/java/cn/keking/web/controller/FileController.java && \
 # remove sourcemap
 find /workspace/kkFileView/server/src/main/resources/static -type f -name "*.js.map" -exec rm -f {} \; && \
-exit 1 && \
 mvn clean package -DskipTests -Dassembly.skipAssembly=true && \
 mkdir /workspace/buildDir && \
 cd /workspace/buildDir && \
