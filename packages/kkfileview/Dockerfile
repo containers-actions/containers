@@ -8,10 +8,8 @@ RUN ARCH=$(case $(uname -m) in x86_64) echo "amd64";; aarch64) echo "arm64";; *)
 git clone -b $KKFILEVIEW_VERSION --depth=1 https://github.com/kekingcn/kkFileView.git && \
 cd /workspace/kkFileView && \
 # remove FileController IndexController
-ls -al /workspace/kkFileView/server/src/main/java/cn/keking/web/controller && \
 rm -rf /workspace/kkFileView/server/src/main/java/cn/keking/web/controller/IndexController.java && \
 rm -rf /workspace/kkFileView/server/src/main/java/cn/keking/web/controller/FileController.java && \
-ls -al /workspace/kkFileView/server/src/main/java/cn/keking/web/controller && \
 # remove sourcemap
 find /workspace/kkFileView/server/src/main/resources/static -type f -name "*.js.map" -exec rm -f {} \; && \
 exit 1 && \
