@@ -1,6 +1,6 @@
 FROM maven:3-eclipse-temurin-8 AS builder
 
-ENV KKFILEVIEW_VERSION="v4.4.0"
+ENV KKFILEVIEW_VERSION="v4.3.0"
 
 WORKDIR /workspace
 
@@ -8,7 +8,8 @@ RUN ARCH=$(case $(uname -m) in x86_64) echo "amd64";; aarch64) echo "arm64";; *)
 git clone -b $KKFILEVIEW_VERSION --depth=1 https://github.com/kekingcn/kkFileView.git && \
 cd /workspace/kkFileView && \
 # remove FileController IndexController
-rm -rf /workspace/kkFileView/server/src/main/java/cn/keking/web/controller/{IndexController.java,FileController.java} && \
+rm -rf /workspace/kkFileView/server/src/main/java/cn/keking/web/controller/IndexController.java && \
+rm -rf /workspace/kkFileView/server/src/main/java/cn/keking/web/controller/FileController.java && \
 # remove sourcemap
 find /workspace/kkFileView/server/src/main/resources/static -type f -name "*.js.map" -exec rm -f {} \; && \
 find /workspace/kkFileView/server/src/main/resources -type f \( -name "*.html" -o -name "*.ftl" \) -exec sed -i -E 's/(<p>)?\S+\s+\S+https:\/\/t\.zsxq\.com\/09ZHSXbsQ<\/a><br>(<\/p>)?//g' {} + && \
@@ -20,7 +21,7 @@ curl -kL https://repo1.maven.org/maven2/net/sf/sevenzipjbinding/sevenzipjbinding
 
 FROM ghcr.io/containers-actions/libreoffice-nogui
 
-ENV KKFILEVIEW_VERSION="v4.4.0" \
+ENV KKFILEVIEW_VERSION="v4.3.0" \
     KKFILEVIEW_BIN_FOLDER="/opt/KKFileView/bin" \
     JAVA_TOOL_OPTIONS="-Xmx512m -XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap -Dsun.jnu.encoding=UTF-8 -Dfile.encoding=UTF-8 -Duser.timezone=Asia/Shanghai"
 
