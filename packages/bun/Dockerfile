@@ -2,7 +2,7 @@ FROM bitnami/os-shell
 
 USER root
 
-ENV BUN_VERSION="v1.2.13" \
+ENV BUN_VERSION="v1.2.14" \
     BUN_INSTALL_BIN=/usr/local/bin \
     ELECTRON_MIRROR="https://npmmirror.com/mirrors/electron/" \
     ELECTRON_BUILDER_BINARIES_MIRROR="https://npmmirror.com/mirrors/electron-builder-binaries/" \
