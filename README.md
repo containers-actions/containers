@@ -8,6 +8,6 @@
 | [kkfileview](https://github.com/containers-actions/containers/pkgs/container/kkfileview)               |               -                |  ✅  |
 | [kkfileview-base](https://github.com/containers-actions/containers/pkgs/container/kkfileview-base)     |          [Deprecated]          |  ⚠️  |
 | [libreoffice-nogui](https://github.com/containers-actions/containers/pkgs/container/libreoffice-nogui) |               -                |  ✅  |
-| [matlab-runtime](https://github.com/containers-actions/containers/pkgs/container/matlab-runtime)       |               -                |  ✅  |
+| [matlab-runtime](https://github.com/containers-actions/containers/pkgs/container/matlab-runtime)       |           [Archive]            |  ⚠️  |
 | [nvm](https://github.com/containers-actions/containers/pkgs/container/nvm)                             |               -                |  ✅  |
 | [subversion](https://github.com/containers-actions/containers/pkgs/container/subversion)               |               -                |  ✅  |
