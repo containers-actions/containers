@@ -4,7 +4,7 @@ USER root
 
 ENV LANG=zh_CN.UTF-8 \
     LC_ALL=zh_CN.UTF-8 \
-    LIBREOFFICE_VERSION="4:7.4.7-1+deb12u9" \
+    LIBREOFFICE_VERSION="4:7.4.7-1+deb12u10" \
     JAVA_TOOL_OPTIONS="-Xmx512m -Dsun.jnu.encoding=UTF-8 -Dfile.encoding=UTF-8 -Duser.timezone=Asia/Shanghai"
 
 COPY fonts/* /usr/share/fonts/chinese/
