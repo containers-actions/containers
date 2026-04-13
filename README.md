@@ -3,7 +3,7 @@
 | 镜像                                                                                                   |              说明              | 状态 |
 | :----------------------------------------------------------------------------------------------------- | :----------------------------: | :--: |
 | [bun](https://github.com/containers-actions/containers/pkgs/container/bun)                             |               -                |  ✅  |
-| [cnpmcore](https://github.com/containers-actions/containers/pkgs/container/cnpmcore)                   | [README.md](packages/cnpmcore) |  ✅  |
+| [cnpmcore](https://github.com/containers-actions/containers/pkgs/container/cnpmcore)                   |          [Deprecated]          |  ⚠️  |
 | [fnm](https://github.com/containers-actions/containers/pkgs/container/fnm)                             |               -                |  ✅  |
 | [kkfileview](https://github.com/containers-actions/containers/pkgs/container/kkfileview)               |               -                |  ✅  |
 | [kkfileview-base](https://github.com/containers-actions/containers/pkgs/container/kkfileview-base)     |          [Deprecated]          |  ⚠️  |
