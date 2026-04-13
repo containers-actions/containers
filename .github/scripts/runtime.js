@@ -407,12 +407,12 @@ module.exports = (scripts) => {
     },
     latestDebianPackageVersion: async (packageName, debianVersion = 'trixie') => {
       const result = await exec.getExecOutput(
-        `docker run --rm bitnami/minideb:${debianVersion} sh -c "apt update > /dev/null 2>&1 && apt-cache policy ${packageName} | grep Candidate | awk '{print $2}' | tr -d '\\n'"`,
+        `docker run --rm debian:${debianVersion} sh -c "apt update > /dev/null 2>&1 && apt-cache policy ${packageName} | awk -F': ' '/Candidate/ {print \\$2}'"`,
         [],
         { silent: true, outStream: new PassThrough() }
       );
       if (result.exitCode === 0 && result.stdout !== '') {
-        return result.stdout;
+        return result.stdout.trim();
       } else {
         return '';
       }
