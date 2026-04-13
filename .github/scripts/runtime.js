@@ -407,7 +407,7 @@ module.exports = (scripts) => {
     },
     latestDebianPackageVersion: async (packageName, debianVersion = 'trixie') => {
       const result = await exec.getExecOutput(
-        `docker run --rm debian:${debianVersion} sh -c "apt update > /dev/null 2>&1 && apt-cache policy ${packageName} | awk -F': ' '/Candidate/ {print \\$2}'"`,
+        `docker run --rm debian:${debianVersion} sh -c "apt update > /dev/null 2>&1 && apt-cache policy ${packageName} | awk -F': ' '/Candidate/ {print $2}'"`,
         [],
         { silent: true, outStream: new PassThrough() }
       );
