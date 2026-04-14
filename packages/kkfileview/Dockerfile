@@ -1,4 +1,4 @@
-FROM maven:3-eclipse-temurin-8 AS builder
+FROM maven:3-eclipse-temurin-21 AS builder
 
 ENV KKFILEVIEW_VERSION="v5.0.0"
 
