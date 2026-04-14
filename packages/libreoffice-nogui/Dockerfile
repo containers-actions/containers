@@ -2,7 +2,7 @@ FROM debian:trixie
 
 ENV LANG=C.UTF-8 \
     LC_ALL=C.UTF-8 \
-    LIBREOFFICE_VERSION="4:25.2.3-1+deb13u3" \
+    LIBREOFFICE_VERSION="4:25.2.3-2+deb13u3" \
     JAVA_TOOL_OPTIONS="-Dsun.jnu.encoding=UTF-8 -Dfile.encoding=UTF-8 -Duser.timezone=Asia/Shanghai"
 
 COPY fonts/* /usr/share/fonts/chinese/
