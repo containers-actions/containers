@@ -23,7 +23,7 @@ FROM ghcr.io/containers-actions/libreoffice-nogui
 
 ENV KKFILEVIEW_VERSION="v5.0.0" \
     KKFILEVIEW_BIN_FOLDER="/opt/KKFileView/bin" \
-    JAVA_TOOL_OPTIONS="-Xmx512m -XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap -Dsun.jnu.encoding=UTF-8 -Dfile.encoding=UTF-8 -Duser.timezone=Asia/Shanghai"
+    JAVA_TOOL_OPTIONS="-Dsun.jnu.encoding=UTF-8 -Dfile.encoding=UTF-8 -Duser.timezone=Asia/Shanghai"
 
 WORKDIR /opt/KKFileView
 
@@ -33,4 +33,4 @@ COPY --from=builder /workspace/buildDir/snapshot-dependencies .
 COPY --from=builder /workspace/buildDir/application .
 COPY --from=builder /workspace/buildDir/application/BOOT-INF/classes/application.properties ./config/
 
-ENTRYPOINT ["java", "org.springframework.boot.loader.JarLauncher"]
+ENTRYPOINT ["java", "org.springframework.boot.loader.launch.JarLauncher"]
