@@ -8,7 +8,7 @@ ENV LANG=C.UTF-8 \
 COPY fonts/* /usr/share/fonts/chinese/
 
 RUN export DEBIAN_FRONTEND=noninteractive && \
-    echo "deb http://deb.debian.org/debian trixie main contrib non-free non-free-firmware" > /etc/apt/sources.list && \
+    echo "deb http://deb.debian.org/debian $(awk -F= '/^VERSION_CODENAME/{print$2}' /etc/os-release) main contrib non-free non-free-firmware" > /etc/apt/sources.list && \
     apt-get update -qq && \
     apt-get install --no-install-recommends -y wget apt-transport-https gpg ca-certificates xfonts-utils fontconfig fonts-noto-cjk fonts-liberation fonts-dejavu libreoffice-nogui && \
     wget -qO - https://packages.adoptium.net/artifactory/api/gpg/key/public | gpg --dearmor | tee /etc/apt/trusted.gpg.d/adoptium.gpg > /dev/null && \
