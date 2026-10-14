@@ -19,12 +19,17 @@ RUN install_packages ca-certificates gnupg unzip git bzip2 && \
     curl -fsSL https://fnm.vercel.app/install | bash -s -- --install-dir $FNM_DIR --release $FNM_VERSION --skip-shell && \
     ln -s /fnm/fnm /usr/local/bin/fnm && \
     # yarn start
-    curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - && \
+    # apt-key is no longer available; apt picks up keys from trusted.gpg.d directly
+    curl -fsSL https://dl.yarnpkg.com/debian/pubkey.gpg -o /etc/apt/trusted.gpg.d/yarn.asc && \
     echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list && \
     install_packages yarn && \
     # yarn end
     # pnpm start
-    curl -fsSL "https://github.com/pnpm/pnpm/releases/latest/download/pnpm-linuxstatic-x64" -o /bin/pnpm; chmod +x /bin/pnpm && \
+    # pnpm releases no longer publish the bare linuxstatic binary; the tarball
+    # layout differs per arch (pnpm-linux-x64.tar.gz / pnpm-linux-arm64.tar.gz)
+    ARCH=$(case $(uname -m) in x86_64) echo "x64";; aarch64) echo "arm64";; *) echo "unknown";; esac) && \
+    curl -fsSL "https://github.com/pnpm/pnpm/releases/latest/download/pnpm-linux-${ARCH}.tar.gz" | tar -xz -C /tmp pnpm && \
+    mv /tmp/pnpm /bin/pnpm && chmod +x /bin/pnpm && \
     # pnpm end
     apt-get --purge autoremove -y gnupg && \
     echo -n $'#!/bin/bash\n\
