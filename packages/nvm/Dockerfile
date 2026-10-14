@@ -15,7 +15,8 @@ ENV NVM_VERSION="v0.40.8" \
 RUN install_packages ca-certificates gnupg unzip git bzip2 && \
     curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/${NVM_VERSION}/install.sh | bash && \
     # yarn start
-    curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - && \
+    # apt-key is no longer available; apt picks up keys from trusted.gpg.d directly
+    curl -fsSL https://dl.yarnpkg.com/debian/pubkey.gpg -o /etc/apt/trusted.gpg.d/yarn.asc && \
     echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list && \
     install_packages yarn && \
     # yarn end
