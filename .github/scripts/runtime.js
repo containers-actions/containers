@@ -288,13 +288,24 @@ module.exports = (scripts) => {
     },
     // ============================== Remix ==============================
     autoPullRequest: async (newBranch, package, version, uploadCallback) => {
-      if ((await actions.createBranch('main', newBranch)) && (await uploadCallback())) {
+      let branchCreated = await actions.createBranch('main', newBranch);
+      if (!branchCreated) {
+        // 分支已存在：无关联 open PR 时为半完成残留（建分支后上传失败等），删除重建以自愈
+        const openPRs = (await actions.listPullRequest('open')).filter((pr) => pr.head.ref === newBranch);
+        if (openPRs.length === 0) {
+          await actions.deleteBranch(newBranch);
+          branchCreated = await actions.createBranch('main', newBranch);
+        }
+      }
+      if (branchCreated && (await uploadCallback())) {
         const title = `Upgrade ${package} version to ${version}`;
         const prInfo = await actions.createPullRequest(newBranch, 'main', title, title);
         if (prInfo.status === 201) {
           await actions.setLabels(prInfo.data.number, [`${actions.const.PACKAGE_DIR}/${package}`]);
+          return true;
         }
       }
+      return false;
     },
     mergePullRequestSquash: async (pullNumber, maxRetry = 5) => {
       try {
@@ -323,7 +334,7 @@ module.exports = (scripts) => {
     updateFileAndCreatePullRequest: async (package, latestVersion, uploads) => {
       const newLatestVersion = semver.clean(latestVersion, { loose: true });
       const newBranch = `${package}/${newLatestVersion}`;
-      await actions.autoPullRequest(newBranch, package, newLatestVersion, async () => {
+      return await actions.autoPullRequest(newBranch, package, newLatestVersion, async () => {
         return await actions.updateFiles(
           newBranch,
           // https://docs.github.com/zh/rest/git/trees?apiVersion=2022-11-28#create-a-tree
@@ -368,11 +379,11 @@ module.exports = (scripts) => {
         const latestVersion = await runtime.getLatestReleaseTagName({ owner, repo });
         if (semver.lt(currentVersion, latestVersion)) {
           dockerfile = runtime.replaceVariable(envKey, latestVersion, dockerfile);
-          await runtime.updateFileAndCreatePullRequest(package, latestVersion, {
+          const created = await runtime.updateFileAndCreatePullRequest(package, latestVersion, {
             Dockerfile: dockerfile,
             'tags.yml': runtime.dumpImageTags([semver.clean(latestVersion, { loose: true }), 'latest']),
           });
-          return latestVersion;
+          return created ? latestVersion : null;
         }
         return null;
       };
@@ -391,11 +402,11 @@ module.exports = (scripts) => {
         if (latestVersion != currentVersion) {
           dockerfile = runtime.replaceVariable(envKey, latestVersion, dockerfile);
           const cleanedVersion = runtime.debianPackageVersionClean(latestVersion);
-          await runtime.updateFileAndCreatePullRequest(package, cleanedVersion, {
+          const created = await runtime.updateFileAndCreatePullRequest(package, cleanedVersion, {
             Dockerfile: dockerfile,
             'tags.yml': runtime.dumpImageTags([semver.clean(cleanedVersion, { loose: true }), 'latest']),
           });
-          return latestVersion;
+          return created ? latestVersion : null;
         }
         return null;
       };
