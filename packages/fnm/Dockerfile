@@ -19,7 +19,9 @@ RUN install_packages ca-certificates gnupg unzip git bzip2 && \
     curl -fsSL https://fnm.vercel.app/install | bash -s -- --install-dir $FNM_DIR --release $FNM_VERSION --skip-shell && \
     ln -s /fnm/fnm /usr/local/bin/fnm && \
     # yarn start
-    # apt-key is no longer available; apt picks up keys from trusted.gpg.d directly
+    # apt-key is no longer available; apt picks up keys from trusted.gpg.d directly,
+    # but the directory may not exist in the base image
+    mkdir -p /etc/apt/trusted.gpg.d && \
     curl -fsSL https://dl.yarnpkg.com/debian/pubkey.gpg -o /etc/apt/trusted.gpg.d/yarn.asc && \
     echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list && \
     install_packages yarn && \
