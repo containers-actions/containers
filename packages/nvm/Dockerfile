@@ -20,7 +20,11 @@ RUN install_packages ca-certificates gnupg unzip git bzip2 && \
     install_packages yarn && \
     # yarn end
     # pnpm start
-    curl -fsSL "https://github.com/pnpm/pnpm/releases/latest/download/pnpm-linuxstatic-x64" -o /bin/pnpm; chmod +x /bin/pnpm && \
+    # pnpm releases no longer publish the bare linuxstatic binary; the tarball
+    # layout differs per arch (pnpm-linux-x64.tar.gz / pnpm-linux-arm64.tar.gz)
+    ARCH=$(case $(uname -m) in x86_64) echo "x64";; aarch64) echo "arm64";; *) echo "unknown";; esac) && \
+    curl -fsSL "https://github.com/pnpm/pnpm/releases/latest/download/pnpm-linux-${ARCH}.tar.gz" | tar -xz -C /tmp pnpm && \
+    mv /tmp/pnpm /bin/pnpm && chmod +x /bin/pnpm && \
     # pnpm end
     apt-get --purge autoremove -y gnupg && \
     ln -sf $HOME/.nvm/nvm.sh /etc/profile.d/nvm.sh && \
