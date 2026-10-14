@@ -1,5 +1,5 @@
 module.exports = async (scripts) => {
-  const { github, context, core, glob, io, exec, fetch, require } = scripts;
+  const { github, context, core, glob, io, exec, require } = scripts;
 
   const runtime = require('.github/scripts/runtime.js')(scripts);
 
@@ -9,11 +9,10 @@ module.exports = async (scripts) => {
 
   let subdir = '';
   prFiles.forEach((x) => {
-    if (x.filename.startsWith(`${runtime.const.PACKAGE_DIR}/${package}/`) && x.filename.endsWith('/Dockerfile')) {
-      subdir = x.filename.substring(
-        `${runtime.const.PACKAGE_DIR}/${package}/`.length,
-        x.filename.length - '/Dockerfile'.length
-      );
+    const prefix = `${runtime.const.PACKAGE_DIR}/${package}/`;
+    if (x.filename.startsWith(prefix) && x.filename.endsWith('/Dockerfile')) {
+      // Dockerfile 位于包根目录时截取结果为 '/'，需归一化为空串
+      subdir = x.filename.substring(prefix.length, x.filename.length - '/Dockerfile'.length).replace(/\/+$/, '');
     }
   });
 

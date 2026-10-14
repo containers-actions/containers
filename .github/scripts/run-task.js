@@ -1,5 +1,5 @@
 module.exports = async (scripts, patterns) => {
-  const { github, context, core, glob, io, exec, fetch, require } = scripts;
+  const { github, context, core, glob, io, exec, require } = scripts;
 
   const runtime = require('.github/scripts/runtime.js')(scripts);
   const globber = await glob.create(patterns, {
@@ -13,19 +13,25 @@ module.exports = async (scripts, patterns) => {
     const path = `${runtime.const.PACKAGE_DIR}/${package}`;
     const run = require(task);
     core.info(`Checking for ${package} updates`);
-    const result = await run({
-      constants: { package, path },
-      scripts,
-      runtime,
-    });
-    if (result != null) {
-      if (Array.isArray(result)) {
-        result.forEach((r) => core.info(`Updated ${package} version to ${r}`));
+    try {
+      const result = await run({
+        constants: { package, path },
+        scripts,
+        runtime,
+      });
+      if (result != null) {
+        if (Array.isArray(result)) {
+          result.forEach((r) => core.info(`Updated ${package} version to ${r}`));
+        } else {
+          core.info(`Updated ${package} version to ${result}`);
+        }
       } else {
-        core.info(`Updated ${package} version to ${result}`);
+        core.info(`${package} is up to date`);
       }
-    } else {
-      core.info(`${package} is up to date`);
+    } catch (error) {
+      // 单个包失败不阻断其余包的检查，但将失败标记到运行结果上
+      core.error(`${package} 检查失败: ${error.message}`);
+      core.setFailed(error.message);
     }
   }
 };

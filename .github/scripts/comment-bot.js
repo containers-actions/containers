@@ -1,5 +1,5 @@
 module.exports = async (scripts) => {
-  const { github, context, core, glob, io, exec, fetch, require } = scripts;
+  const { github, context, core, glob, io, exec, require } = scripts;
 
   const runtime = require('.github/scripts/runtime.js')(scripts);
 

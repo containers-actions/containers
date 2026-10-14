@@ -10,16 +10,14 @@ jobs:
     runs-on: ubuntu-latest
     name: Check Update
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
-          node-version: lts/Hydrogen
-      - run: npm install semver cheerio js-yaml
-      - uses: actions/github-script@v6
-        env:
-          SECRETS: ${{ toJSON(secrets) }}
+          node-version: 24
+      - run: npm install semver js-yaml
+      - uses: actions/github-script@v9
         with:
           # script
           github-token: ${{ secrets.BOT_PAT }}
           script: |
-            require('.github/scripts/run-task.js')({ github, context, core, glob, io, exec, fetch, require }, "packages/**/update.task.js");
+            require('.github/scripts/run-task.js')({ github, context, core, glob, io, exec, require }, "packages/**/update.task.js");

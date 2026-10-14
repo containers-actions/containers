@@ -11,18 +11,16 @@ jobs:
     if: startsWith(github.event.comment.body, '/')
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           ref: main
           sparse-checkout: .github
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v7
         with:
-          node-version: lts/Hydrogen
-      - run: npm install semver cheerio js-yaml
-      - uses: actions/github-script@v6
-        env:
-          SECRETS: ${{ toJSON(secrets) }}
+          node-version: 24
+      - run: npm install semver js-yaml
+      - uses: actions/github-script@v9
         with:
           github-token: ${{ secrets.BOT_PAT }}
           script: |
-            require('.github/scripts/comment-bot.js')({ github, context, core, glob, io, exec, fetch, require });
+            require('.github/scripts/comment-bot.js')({ github, context, core, glob, io, exec, require });

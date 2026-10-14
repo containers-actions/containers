@@ -1,6 +1,8 @@
 name: "[CI/CD] Packages PR Checks"
 on:
-  pull_request_target:
+  # PR 全部由 bot 从同仓库分支创建且不修改 workflow 文件，
+  # 用 pull_request 即可携带 secrets，并退出 pull_request_target 安全面
+  pull_request:
     types:
       - labeled
 permissions: {}
@@ -10,32 +12,34 @@ jobs:
     runs-on: ubuntu-latest
     name: packages-pr-checks
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           ref: ${{ github.event.pull_request.head.sha }}
       - name: Login to Docker Hub
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
       - name: Login to GitHub Container Registry
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ secrets.BOT_USERNAME }}
           password: ${{ secrets.BOT_PAT }}
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-      - uses: actions/setup-node@v3
+        uses: docker/setup-qemu-action@v4
         with:
-          node-version: lts/Hydrogen
-      - run: npm install semver cheerio js-yaml
-      - uses: actions/github-script@v6
-        env:
-          SECRETS: ${{ toJSON(secrets) }}
+          cache-image: false
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+        with:
+          cache-binary: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+      - run: npm install semver js-yaml
+      - uses: actions/github-script@v9
         with:
           github-token: ${{ secrets.BOT_PAT }}
           script: |
-            require('.github/scripts/run-build.js')({ github, context, core, glob, io, exec, fetch, require });
+            require('.github/scripts/run-build.js')({ github, context, core, glob, io, exec, require });

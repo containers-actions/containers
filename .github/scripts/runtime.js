@@ -1,7 +1,7 @@
-const { version } = require('os');
-
 module.exports = (scripts) => {
-  const { github, context, core, glob, io, exec, fetch, require } = scripts;
+  const { github, context, core, glob, io, exec, require } = scripts;
+  // actions/github-script v7+ 不再注入 fetch，回退到 Node 运行时全局 fetch
+  const fetch = scripts.fetch ?? globalThis.fetch;
   const { PassThrough } = require('stream');
   const fs = require('fs');
   const semver = require('semver');
@@ -9,33 +9,20 @@ module.exports = (scripts) => {
   const actions = {
     const: { PACKAGE_DIR: 'packages' },
     // ============================== Common ==============================
-    /**
-     *
-     * @param {() => Promise<boolean>} tasks
-     * @returns boolean[]
-     */
-    promiseStep: async (tasks = []) => {
-      const result = [];
-      for (const task of tasks) {
-        try {
-          result.push(await task());
-        } catch (error) {
-          result.push(false);
-        }
-      }
-      return result;
-    },
     retryFetch: async (url, options = {}, maxRetry = 5, retryInterval = 1000) => {
+      let lastError;
       for (let i = 0; i < maxRetry; i++) {
         try {
           return await fetch(url, options);
         } catch (e) {
-          core.info(`[url] 正在进行第[${i + 1}]次重试`);
+          lastError = e;
+          core.info(`[url] ${url} 第${i + 1}次请求失败: ${e.message}`);
           if (i !== maxRetry - 1) {
             await actions.sleep(retryInterval);
           }
         }
       }
+      throw new Error(`[url] ${url} 重试 ${maxRetry} 次后仍失败: ${lastError.message}`);
     },
     sleep: async (ms, callback = () => {}) => {
       return new Promise((resolve) =>
@@ -57,37 +44,32 @@ module.exports = (scripts) => {
     },
     getDockerfileEnvVersion: (key, content) => {
       const regex = new RegExp(`(${key})="?(?<version>v?[\\d\\w.+-:]+)"?`, 'gm');
-      return regex.exec(content).groups['version'];
+      const match = regex.exec(content);
+      if (match == null) {
+        throw new Error(`Dockerfile 中未找到变量 ${key}`);
+      }
+      return match.groups['version'];
     },
     getVersion: (content) => {
       const regex = new RegExp(`(?<version>v?[\\d.]+-?[\\w+-]+)`, 'g');
-      return regex.exec(content).groups['version'];
+      const match = regex.exec(content);
+      if (match == null) {
+        throw new Error(`无法从 ${content} 中解析版本号`);
+      }
+      return match.groups['version'];
     },
     replaceVariable: (key, value, content) => {
       const regex = new RegExp(`^(\\w*\\s*)(${key})="?([^"]+)"?(\\s*\\\\)?[^\\S\\n]*$`, 'gm');
       return content.replace(regex, `$1$2="${value}"$4`);
     },
     /**
-     * 获取指定密钥名称的秘密值
+     * 从指定的路径读取一个文件
      *
-     * @param {string} secretName   密钥名称
-     * @return {string}             密钥的值
-     */
-    getSecret: (secretName) => {
-      return JSON.parse(process.env.SECRETS || '{}')[secretName];
-    },
-    /**
-     * 从指定的路径和文件名读取一个文件
-     *
-     * @param {string} path     文件的路径
-     * @param {string} fileName 文件的名称
-     * @return {string}         文件的内容
+     * @param {string} path 文件的路径
+     * @return {string}     文件的内容
      */
     readFile: (path) => {
       return fs.readFileSync(path, 'utf8');
-    },
-    writeFile: (path, value) => {
-      return fs.writeFileSync(path, value);
     },
     /**
      * 读取Dockerfile
@@ -97,9 +79,6 @@ module.exports = (scripts) => {
      */
     readDockerfile: (package) => {
       return actions.readFile(`${actions.const.PACKAGE_DIR}/${package}/Dockerfile`);
-    },
-    writeDockerfile: (package, value) => {
-      return actions.writeFile(`${actions.const.PACKAGE_DIR}/${package}/Dockerfile`, value);
     },
     readBuildPlatform: (package) => {
       return actions
@@ -141,9 +120,9 @@ module.exports = (scripts) => {
       return annotations;
     },
     /**
-     * 获取指定所有者和仓库的最新版本发布名称。
+     * 获取指定所有者和仓库的最新 Release。
      *
-     * @param {{owner: string, repo: string}} params  获取最新版本发布的参数
+     * @param {{owner: string, repo: string}} params 获取最新版本发布的参数
      */
     getLatestReleaseData: async ({ owner, repo }) => {
       return (await github.rest.repos.getLatestRelease({ owner, repo })).data;
@@ -151,7 +130,7 @@ module.exports = (scripts) => {
     /**
      * 获取指定所有者和仓库的最新版本发布名称。
      *
-     * @param {{owner: string, repo: string}} params  获取最新版本发布的参数
+     * @param {{owner: string, repo: string}} params 获取最新版本发布的参数
      * @return {string}                               最新版本发布tag的名称
      */
     getLatestReleaseTagName: async ({ owner, repo }) => {
@@ -177,33 +156,30 @@ module.exports = (scripts) => {
      *
      * @param {string} originBranch 原分支名
      * @param {string} newBranch    新分支名
-     * @returns {boolean}           是否创建成功
+     * @returns {boolean}           新建成功返回 true；分支已存在返回 false（调用方据此跳过重复更新，保持幂等）
      */
     createBranch: async (originBranch, newBranch) => {
       try {
         await actions.getBranch(newBranch);
+        return false;
       } catch (error) {
-        if (error.status === 404) {
-          const originRef = await actions.getBranch(originBranch);
-          const newRef = await github.rest.git.createRef({
-            ...context.repo,
-            ref: `refs/heads/${newBranch}`,
-            sha: originRef.object.sha,
-          });
-          return true;
+        if (error.status !== 404) {
+          throw error;
         }
+        const originRef = await actions.getBranch(originBranch);
+        const newRef = await github.rest.git.createRef({
+          ...context.repo,
+          ref: `refs/heads/${newBranch}`,
+          sha: originRef.object.sha,
+        });
+        return newRef.status === 201;
       }
-      return false;
     },
     updateBranch: async (branch, sha) => {
       return await actions.updateRef(`heads/${branch}`, sha);
     },
     deleteBranch: async (branch) => await actions.deleteRef(`heads/${branch}`),
-    deleteTag: async (tag) => await actions.deleteRef(`tags/${tag}`),
     // ============================== Label ==============================
-    listLabelsOnIssue: async (issueNumber) => {
-      return (await github.rest.issues.listLabelsOnIssue({ ...context.repo, issue_number: issueNumber })).data;
-    },
     listLabelsForRepo: async () => {
       return (await github.rest.issues.listLabelsForRepo({ ...context.repo })).data || [];
     },
@@ -212,46 +188,15 @@ module.exports = (scripts) => {
     },
     setLabels: async (issueNumber, labels) => {
       const repoLabels = (await actions.listLabelsForRepo()).map((x) => x.name);
-      labels.forEach(async (label) => {
+      // 标签必须创建完成后再 setLabels，否则 pr-check（labeled 触发）不会执行
+      for (const label of labels) {
         if (!repoLabels.includes(label)) {
           await actions.createLabel(label, 'FBCA04');
         }
-      });
+      }
       return await github.rest.issues.setLabels({ ...context.repo, issue_number: issueNumber, labels });
     },
     // ============================== Repo ==============================
-    /**
-     * 从GitHub仓库中获取文件的内容
-     *
-     * @param {string} path 文件路径
-     * @return {string}     文件的内容
-     */
-    getContent: async (ref, path) => {
-      return (await github.rest.repos.getContent({ ...context.repo, ref, path })).data;
-    },
-    /**
-     * 更新文件内容并将更改提交到 GitHub 存储库。
-     *
-     * @param {string} filePath     要更新的文件路径
-     * @param {string} content      要写入文件的新内容
-     * @param {string} message      文件更新的提交消息
-     * @returns {Promise<Object>}   一个解析为 GitHub API 响应对象的 Promise
-     */
-    updateFile: async (branch, filePath, content, message) => {
-      let fileInfo = {};
-      try {
-        fileInfo = await actions.getContent(branch, filePath);
-      } catch (error) {}
-      const result = await github.rest.repos.createOrUpdateFileContents({
-        ...context.repo,
-        path: filePath,
-        message,
-        branch,
-        sha: fileInfo.sha,
-        content: Buffer.from(content).toString('base64'),
-      });
-      return result.status === 200 || result.status === 201;
-    },
     /**
      * 更新文件内容并将更改提交到 GitHub 存储库。
      *
@@ -341,9 +286,6 @@ module.exports = (scripts) => {
     closePullRequest: async (pullNumber) => {
       return await actions.updatePullRequest(pullNumber, { state: 'closed' });
     },
-    openPullRequest: async (pullNumber) => {
-      return await actions.updatePullRequest(pullNumber, { state: 'open' });
-    },
     // ============================== Remix ==============================
     autoPullRequest: async (newBranch, package, version, uploadCallback) => {
       if ((await actions.createBranch('main', newBranch)) && (await uploadCallback())) {
@@ -354,7 +296,7 @@ module.exports = (scripts) => {
         }
       }
     },
-    mergePullRequestSquash: async (pullNumber) => {
+    mergePullRequestSquash: async (pullNumber, maxRetry = 5) => {
       try {
         const result = await github.rest.pulls.merge({
           ...context.repo,
@@ -363,10 +305,13 @@ module.exports = (scripts) => {
         });
         return result.status === 200;
       } catch (error) {
-        if (error.status === 405) {
+        // 405: PR 尚未满足合并条件（如刚推送 CI 未完成），短暂等待后重试
+        if (error.status === 405 && maxRetry > 0) {
           await actions.sleep(5000);
-          await actions.mergePullRequestSquash(pullNumber);
+          return await actions.mergePullRequestSquash(pullNumber, maxRetry - 1);
         }
+        core.error(`合并 PR #${pullNumber} 失败: ${error.status} ${error.message}`);
+        return false;
       }
     },
     /**
@@ -390,19 +335,6 @@ module.exports = (scripts) => {
           })),
           `build: Update ${package} version to ${newLatestVersion}`
         );
-        // return (
-        //   await actions.promiseStep([
-        //     ...Object.keys(uploads).map(
-        //       (path) => async () =>
-        //         actions.updateFile(
-        //           newBranch,
-        //           `${actions.const.PACKAGE_DIR}/${package}/${path}`,
-        //           uploads[path],
-        //           `Update ${package} version to ${newLatestVersion}`
-        //         )
-        //     ),
-        //   ])
-        // ).every((x) => x);
       });
     },
     latestDebianPackageVersion: async (packageName, debianVersion = 'trixie') => {
@@ -413,15 +345,60 @@ module.exports = (scripts) => {
       );
       if (result.exitCode === 0 && result.stdout !== '') {
         return result.stdout.trim();
-      } else {
-        return '';
       }
+      throw new Error(`查询 Debian 包 ${packageName} 候选版本失败: exitCode=${result.exitCode}`);
     },
     debianPackageVersionClean: (version) => {
       let cleanedVersion = version;
       cleanedVersion = cleanedVersion.slice(cleanedVersion.indexOf(':') + 1);
       cleanedVersion = cleanedVersion.replace('+', '-');
       return cleanedVersion;
+    },
+    // ============================== Task Factory ==============================
+    /**
+     * 构建基于 GitHub Release 的版本更新任务
+     *
+     * @param {{owner: string, repo: string, envKey: string}} config 上游仓库与 Dockerfile 中的版本变量名
+     */
+    githubReleaseTask: ({ owner, repo, envKey }) => {
+      return async ({ constants: { package }, scripts, runtime }) => {
+        const semver = scripts.require('semver');
+        let dockerfile = runtime.readDockerfile(package);
+        const currentVersion = runtime.getDockerfileEnvVersion(envKey, dockerfile);
+        const latestVersion = await runtime.getLatestReleaseTagName({ owner, repo });
+        if (semver.lt(currentVersion, latestVersion)) {
+          dockerfile = runtime.replaceVariable(envKey, latestVersion, dockerfile);
+          await runtime.updateFileAndCreatePullRequest(package, latestVersion, {
+            Dockerfile: dockerfile,
+            'tags.yml': runtime.dumpImageTags([semver.clean(latestVersion, { loose: true }), 'latest']),
+          });
+          return latestVersion;
+        }
+        return null;
+      };
+    },
+    /**
+     * 构建基于 Debian 仓库候选版本的更新任务
+     *
+     * @param {{packageName?: string, envKey: string, debianVersion?: string}} config Debian 包名与 Dockerfile 中的版本变量名，缺省包名与包目录同名
+     */
+    debianPackageTask: ({ packageName, envKey, debianVersion }) => {
+      return async ({ constants: { package }, scripts, runtime }) => {
+        const semver = scripts.require('semver');
+        const latestVersion = await runtime.latestDebianPackageVersion(packageName || package, debianVersion);
+        let dockerfile = runtime.readDockerfile(package);
+        const currentVersion = runtime.getDockerfileEnvVersion(envKey, dockerfile);
+        if (latestVersion != currentVersion) {
+          dockerfile = runtime.replaceVariable(envKey, latestVersion, dockerfile);
+          const cleanedVersion = runtime.debianPackageVersionClean(latestVersion);
+          await runtime.updateFileAndCreatePullRequest(package, cleanedVersion, {
+            Dockerfile: dockerfile,
+            'tags.yml': runtime.dumpImageTags([semver.clean(cleanedVersion, { loose: true }), 'latest']),
+          });
+          return latestVersion;
+        }
+        return null;
+      };
     },
   };
   return actions;
