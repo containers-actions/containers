@@ -14,17 +14,16 @@ ENV FNM_VERSION="v1.38.1" \
     PHANTOMJS_CDNURL="https://npmmirror.com/mirrors/phantomjs" \
     NODE_EXTRA_CA_CERTS=/etc/ssl/certs/ca-certificates.crt
 
-RUN install_packages ca-certificates gnupg unzip git bzip2 && \
+RUN install_packages ca-certificates unzip git bzip2 && \
     mkdir $FNM_DIR && \
     curl -fsSL https://fnm.vercel.app/install | bash -s -- --install-dir $FNM_DIR --release $FNM_VERSION --skip-shell && \
     ln -s /fnm/fnm /usr/local/bin/fnm && \
     # yarn start
-    # apt-key is no longer available; apt picks up keys from trusted.gpg.d directly,
-    # but the directory may not exist in the base image
-    mkdir -p /etc/apt/trusted.gpg.d /etc/apt/sources.list.d && \
-    curl -fsSL https://dl.yarnpkg.com/debian/pubkey.gpg -o /etc/apt/trusted.gpg.d/yarn.asc && \
-    echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list && \
-    install_packages yarn && \
+    # the yarn apt repo no longer works on this base image (no apt-key, apt
+    # ignores the third-party source); provision node via fnm and install
+    # yarn classic from npm instead
+    eval "$(fnm env)" && fnm install --lts && \
+    npm install -g yarn@1 && \
     # yarn end
     # pnpm start
     # pnpm releases no longer publish the bare linuxstatic binary; the tarball
@@ -33,7 +32,6 @@ RUN install_packages ca-certificates gnupg unzip git bzip2 && \
     curl -fsSL "https://github.com/pnpm/pnpm/releases/latest/download/pnpm-linux-${ARCH}.tar.gz" | tar -xz -C /tmp pnpm && \
     mv /tmp/pnpm /bin/pnpm && chmod +x /bin/pnpm && \
     # pnpm end
-    apt-get --purge autoremove -y gnupg && \
     echo -n $'#!/bin/bash\n\
 export PATH="$INSTALL_DIR:$PATH"\n\
 eval "$(fnm env)"\n\
