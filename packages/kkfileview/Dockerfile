@@ -10,10 +10,8 @@ cd /workspace/kkFileView && \
 # remove FileController IndexController
 rm -rf /workspace/kkFileView/server/src/main/java/cn/keking/web/controller/IndexController.java && \
 rm -rf /workspace/kkFileView/server/src/main/java/cn/keking/web/controller/FileController.java && \
-# remove tests referencing removed controllers (-DskipTests only skips running, tests are still compiled)
-rm -rf /workspace/kkFileView/server/src/test/java/cn/keking/web/controller/*FileController*Tests.java && \
-rm -rf /workspace/kkFileView/server/src/test/java/cn/keking/web/controller/ArchiveDirectorySecurityTests.java && \
-rm -rf /workspace/kkFileView/server/src/test/java/cn/keking/web/controller/UploadPathSecurityTests.java && \
+# remove all tests: -DskipTests only skips running, tests are still compiled, and new upstream tests may reference the removed controllers
+rm -rf /workspace/kkFileView/server/src/test && \
 # remove sourcemap
 find /workspace/kkFileView/server/src/main/resources/static -type f -name "*.js.map" -exec rm -f {} \; && \
 find /workspace/kkFileView/server/src/main/resources -type f \( -name "*.html" -o -name "*.ftl" \) -exec sed -i -E 's/(<p>)?\S+\s+\S+https:\/\/t\.zsxq\.com\/09ZHSXbsQ<\/a><br>(<\/p>)?//g' {} + && \
