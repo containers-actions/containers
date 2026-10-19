@@ -1,6 +1,6 @@
 FROM debian:bookworm-slim
 
-ENV FNM_VERSION="v1.38.0" \
+ENV FNM_VERSION="v1.39.0" \
     LANG=C.UTF-8 \
     LC_ALL=C.UTF-8 \
     FNM_DIR="/fnm" \
