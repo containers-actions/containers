@@ -2,7 +2,7 @@ FROM debian:trixie-slim
 
 SHELL ["/bin/bash", "-o", "errexit", "-o", "nounset", "-o", "pipefail", "-c"]
 
-ENV NVM_VERSION="v0.40.6" \
+ENV NVM_VERSION="v0.40.8" \
     LANG=C.UTF-8 \
     LC_ALL=C.UTF-8 \
     NVM_NODEJS_ORG_MIRROR="https://npmmirror.com/mirrors/node" \
