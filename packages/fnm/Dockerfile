@@ -1,8 +1,10 @@
-FROM bitnami/os-shell
+FROM debian:trixie-slim
 
-USER root
+SHELL ["/bin/bash", "-o", "errexit", "-o", "nounset", "-o", "pipefail", "-c"]
 
-ENV FNM_VERSION="v1.39.0" \
+ENV FNM_VERSION="v1.37.2" \
+    LANG=C.UTF-8 \
+    LC_ALL=C.UTF-8 \
     FNM_DIR="/fnm" \
     XDG_RUNTIME_DIR="/fnm" \
     FNM_MULTISHELL_PATH=/fnm/multishells \
@@ -14,16 +16,18 @@ ENV FNM_VERSION="v1.39.0" \
     PHANTOMJS_CDNURL="https://npmmirror.com/mirrors/phantomjs" \
     NODE_EXTRA_CA_CERTS=/etc/ssl/certs/ca-certificates.crt
 
-RUN install_packages ca-certificates unzip git bzip2 && \
-    mkdir $FNM_DIR && \
+RUN mkdir $FNM_DIR && \
     curl -fsSL https://fnm.vercel.app/install | bash -s -- --install-dir $FNM_DIR --release $FNM_VERSION --skip-shell && \
     ln -s /fnm/fnm /usr/local/bin/fnm && \
     # yarn start
-    # the yarn apt repo no longer works on this base image (no apt-key, apt
-    # ignores the third-party source); provision node via fnm and install
-    # yarn classic from npm instead
-    eval "$(fnm env)" && fnm install --lts && \
-    npm install -g yarn@1 && \
+    # yarn's apt repo is distro-agnostic (Suite: stable); store the key directly
+    # in trusted.gpg.d since apt-key is deprecated. A system-level install keeps
+    # yarn available no matter which node version fnm switches to.
+    curl -fsSL https://dl.yarnpkg.com/debian/pubkey.gpg -o /etc/apt/trusted.gpg.d/yarn.asc && \
+    echo "deb https://dl.yarnpkg.com/debian/ stable main" > /etc/apt/sources.list.d/yarn.list && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends ca-certificates curl unzip git bzip2 fonts-noto-cjk fontconfig yarn && \
+    rm -rf /var/lib/apt/lists && \
     # yarn end
     # pnpm start
     # pnpm releases no longer publish the bare linuxstatic binary; the tarball

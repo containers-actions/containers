@@ -1,8 +1,10 @@
-FROM bitnami/os-shell
+FROM debian:trixie-slim
 
-USER root
+SHELL ["/bin/bash", "-o", "errexit", "-o", "nounset", "-o", "pipefail", "-c"]
 
-ENV NVM_VERSION="v0.40.8" \
+ENV NVM_VERSION="v0.40.6" \
+    LANG=C.UTF-8 \
+    LC_ALL=C.UTF-8 \
     NVM_NODEJS_ORG_MIRROR="https://npmmirror.com/mirrors/node" \
     NVM_IOJS_ORG_MIRROR="https://npmmirror.com/mirrors/iojs" \
     ELECTRON_MIRROR="https://npmmirror.com/mirrors/electron/" \
@@ -12,15 +14,19 @@ ENV NVM_VERSION="v0.40.8" \
     PHANTOMJS_CDNURL="https://npmmirror.com/mirrors/phantomjs" \
     NODE_EXTRA_CA_CERTS=/etc/ssl/certs/ca-certificates.crt
 
-RUN install_packages ca-certificates unzip git bzip2 && \
-    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/${NVM_VERSION}/install.sh | bash && \
+RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/${NVM_VERSION}/install.sh | bash && \
+    # yarn start
+    # yarn's apt repo is distro-agnostic (Suite: stable); store the key directly
+    # in trusted.gpg.d since apt-key is deprecated. A system-level install keeps
+    # yarn available no matter which node version nvm switches to.
+    curl -fsSL https://dl.yarnpkg.com/debian/pubkey.gpg -o /etc/apt/trusted.gpg.d/yarn.asc && \
+    echo "deb https://dl.yarnpkg.com/debian/ stable main" > /etc/apt/sources.list.d/yarn.list && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends ca-certificates curl unzip git bzip2 fonts-noto-cjk fontconfig yarn && \
+    rm -rf /var/lib/apt/lists && \
+    # yarn end
     export NVM_DIR="$HOME/.nvm" && . "$NVM_DIR/nvm.sh" && \
     nvm install --lts && \
-    # yarn start
-    # the yarn apt repo no longer works on this base image (no apt-key, apt
-    # ignores the third-party source); install yarn classic from npm instead
-    npm install -g yarn@1 && \
-    # yarn end
     # pnpm start
     # pnpm releases no longer publish the bare linuxstatic binary; the tarball
     # layout differs per arch (pnpm-linux-x64.tar.gz / pnpm-linux-arm64.tar.gz)
