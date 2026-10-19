@@ -1,9 +1,11 @@
-FROM bitnami/os-shell
+FROM debian:trixie-slim
 
-USER root
+SHELL ["/bin/bash", "-o", "errexit", "-o", "nounset", "-o", "pipefail", "-c"]
 
-ENV BUN_VERSION="v1.4.3" \
+ENV BUN_VERSION="v1.4.2" \
     BUN_INSTALL_BIN=/usr/local/bin \
+    LANG=C.UTF-8 \
+    LC_ALL=C.UTF-8 \
     ELECTRON_MIRROR="https://npmmirror.com/mirrors/electron/" \
     ELECTRON_BUILDER_BINARIES_MIRROR="https://npmmirror.com/mirrors/electron-builder-binaries/" \
     SASS_BINARY_SITE="https://npmmirror.com/mirrors/node-sass" \
@@ -13,8 +15,10 @@ ENV BUN_VERSION="v1.4.3" \
 
 COPY rootfs /
 
-RUN ARCH="$(if [ "$OS_ARCH" = "amd64" ]; then echo "x64"; elif [ "$OS_ARCH" = "arm64" ]; then echo "aarch64"; else echo "unknown"; fi)" && \
-    install_packages unzip git && \
+RUN ARCH="$(case $(uname -m) in x86_64) echo "x64";; aarch64) echo "aarch64";; *) echo "unknown";; esac)" && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends unzip git curl ca-certificates && \
+    rm -rf /var/lib/apt/lists && \
     curl -L https://github.com/oven-sh/bun/releases/download/bun-${BUN_VERSION}/bun-linux-${ARCH}.zip -o /tmp/bun-linux-${ARCH}.zip && \
     unzip /tmp/bun-linux-${ARCH}.zip -d /tmp/ && \
     cp /tmp/bun-linux-${ARCH}/bun /usr/local/bin/bun && \

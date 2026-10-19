@@ -1,8 +1,10 @@
-FROM bitnami/os-shell
+FROM debian:trixie-slim
 
-USER root
+SHELL ["/bin/bash", "-o", "errexit", "-o", "nounset", "-o", "pipefail", "-c"]
 
-ENV FNM_VERSION="v1.39.0" \
+ENV FNM_VERSION="v1.38.0" \
+    LANG=C.UTF-8 \
+    LC_ALL=C.UTF-8 \
     FNM_DIR="/fnm" \
     XDG_RUNTIME_DIR="/fnm" \
     FNM_MULTISHELL_PATH=/fnm/multishells \
@@ -14,7 +16,9 @@ ENV FNM_VERSION="v1.39.0" \
     PHANTOMJS_CDNURL="https://npmmirror.com/mirrors/phantomjs" \
     NODE_EXTRA_CA_CERTS=/etc/ssl/certs/ca-certificates.crt
 
-RUN install_packages ca-certificates unzip git bzip2 && \
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends ca-certificates curl unzip git bzip2 fonts-noto-cjk fontconfig && \
+    rm -rf /var/lib/apt/lists && \
     mkdir $FNM_DIR && \
     curl -fsSL https://fnm.vercel.app/install | bash -s -- --install-dir $FNM_DIR --release $FNM_VERSION --skip-shell && \
     ln -s /fnm/fnm /usr/local/bin/fnm && \
@@ -22,7 +26,9 @@ RUN install_packages ca-certificates unzip git bzip2 && \
     # the yarn apt repo no longer works on this base image (no apt-key, apt
     # ignores the third-party source); provision node via fnm and install
     # yarn classic from npm instead
-    eval "$(fnm env)" && fnm install --lts && \
+    # --shell bash: fnm cannot infer the shell inside docker build, and an
+    # empty eval would silently skip the PATH export (npm: not found)
+    eval "$(fnm env --shell bash)" && fnm install --lts && \
     npm install -g yarn@1 && \
     # yarn end
     # pnpm start

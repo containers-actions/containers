@@ -1,5 +1,7 @@
 FROM debian:trixie
 
+SHELL ["/bin/bash", "-o", "errexit", "-o", "nounset", "-o", "pipefail", "-c"]
+
 ENV LANG=C.UTF-8 \
     LC_ALL=C.UTF-8 \
     LIBREOFFICE_VERSION="4:25.2.3-2+deb13u8" \
