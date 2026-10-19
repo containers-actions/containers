@@ -1,6 +1,6 @@
 FROM debian:bookworm-slim
 
-ENV NVM_VERSION="v0.40.7" \
+ENV NVM_VERSION="v0.40.8" \
     LANG=C.UTF-8 \
     LC_ALL=C.UTF-8 \
     NVM_NODEJS_ORG_MIRROR="https://npmmirror.com/mirrors/node" \
