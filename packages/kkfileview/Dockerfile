@@ -1,5 +1,7 @@
 FROM maven:3-eclipse-temurin-21 AS builder
 
+SHELL ["/bin/bash", "-o", "errexit", "-o", "nounset", "-o", "pipefail", "-c"]
+
 ENV KKFILEVIEW_VERSION="v5.0.3"
 
 WORKDIR /workspace
