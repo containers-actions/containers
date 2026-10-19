@@ -1,8 +1,8 @@
-FROM bitnami/os-shell
+FROM debian:bookworm-slim
 
-USER root
-
-ENV NVM_VERSION="v0.40.8" \
+ENV NVM_VERSION="v0.40.7" \
+    LANG=C.UTF-8 \
+    LC_ALL=C.UTF-8 \
     NVM_NODEJS_ORG_MIRROR="https://npmmirror.com/mirrors/node" \
     NVM_IOJS_ORG_MIRROR="https://npmmirror.com/mirrors/iojs" \
     ELECTRON_MIRROR="https://npmmirror.com/mirrors/electron/" \
@@ -12,7 +12,9 @@ ENV NVM_VERSION="v0.40.8" \
     PHANTOMJS_CDNURL="https://npmmirror.com/mirrors/phantomjs" \
     NODE_EXTRA_CA_CERTS=/etc/ssl/certs/ca-certificates.crt
 
-RUN install_packages ca-certificates unzip git bzip2 && \
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends ca-certificates curl unzip git bzip2 fonts-noto-cjk fontconfig && \
+    rm -rf /var/lib/apt/lists && \
     curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/${NVM_VERSION}/install.sh | bash && \
     export NVM_DIR="$HOME/.nvm" && . "$NVM_DIR/nvm.sh" && \
     nvm install --lts && \
