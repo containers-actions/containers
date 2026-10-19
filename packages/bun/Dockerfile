@@ -2,7 +2,7 @@ FROM debian:trixie-slim
 
 SHELL ["/bin/bash", "-o", "errexit", "-o", "nounset", "-o", "pipefail", "-c"]
 
-ENV BUN_VERSION="v1.4.1" \
+ENV BUN_VERSION="v1.4.3" \
     BUN_INSTALL_BIN=/usr/local/bin \
     LANG=C.UTF-8 \
     LC_ALL=C.UTF-8 \
