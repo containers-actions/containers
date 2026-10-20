@@ -2,7 +2,7 @@ FROM debian:trixie-slim
 
 SHELL ["/bin/bash", "-o", "errexit", "-o", "nounset", "-o", "pipefail", "-c"]
 
-ENV FNM_VERSION="v1.38.0" \
+ENV FNM_VERSION="v1.39.0" \
     LANG=C.UTF-8 \
     LC_ALL=C.UTF-8 \
     FNM_DIR="/fnm" \
@@ -14,7 +14,8 @@ ENV FNM_VERSION="v1.38.0" \
     SASS_BINARY_SITE="https://npmmirror.com/mirrors/node-sass" \
     PYTHON_MIRROR="https://npmmirror.com/mirrors/python" \
     PHANTOMJS_CDNURL="https://npmmirror.com/mirrors/phantomjs" \
-    NODE_EXTRA_CA_CERTS=/etc/ssl/certs/ca-certificates.crt
+    NODE_EXTRA_CA_CERTS=/etc/ssl/certs/ca-certificates.crt \
+    PATH="/fnm/aliases/default/bin:${PATH}"
 
 RUN export DEBIAN_FRONTEND=noninteractive && \
     apt-get -o Acquire::Retries=3 update -qq && \
@@ -34,10 +35,10 @@ RUN export DEBIAN_FRONTEND=noninteractive && \
     curl -fsSL "https://github.com/pnpm/pnpm/releases/latest/download/pnpm-linux-${ARCH}.tar.gz" | tar -xz -C /tmp pnpm && \
     mv /tmp/pnpm /bin/pnpm && chmod +x /bin/pnpm && \
     # pnpm end
-    echo -n $'#!/bin/bash\n\
-export PATH="$INSTALL_DIR:$PATH"\n\
-eval "$(fnm env)"\n\
-' >> /etc/profile && \
+    # /etc/profile resets PATH for login shells, and the entrypoint runs the
+    # command via `sh -l`, so the image-level PATH is overwritten. profile.d
+    # is sourced after that reset, which is where the node path must go.
+    printf '%s\n' 'export PATH="/fnm/aliases/default/bin:$PATH"' > /etc/profile.d/fnm.sh && \
     echo -n $'#!/usr/bin/env sh\n\
 export PATH="$PATH:$FNM_MULTISHELL_PATH"\n\
 if [ -n "$REGISTRY" ]; then\n\
