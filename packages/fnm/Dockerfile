@@ -14,7 +14,8 @@ ENV FNM_VERSION="v1.39.0" \
     SASS_BINARY_SITE="https://npmmirror.com/mirrors/node-sass" \
     PYTHON_MIRROR="https://npmmirror.com/mirrors/python" \
     PHANTOMJS_CDNURL="https://npmmirror.com/mirrors/phantomjs" \
-    NODE_EXTRA_CA_CERTS=/etc/ssl/certs/ca-certificates.crt
+    NODE_EXTRA_CA_CERTS=/etc/ssl/certs/ca-certificates.crt \
+    PATH="/fnm/aliases/default/bin:${PATH}"
 
 RUN export DEBIAN_FRONTEND=noninteractive && \
     apt-get -o Acquire::Retries=3 update -qq && \
@@ -34,10 +35,6 @@ RUN export DEBIAN_FRONTEND=noninteractive && \
     curl -fsSL "https://github.com/pnpm/pnpm/releases/latest/download/pnpm-linux-${ARCH}.tar.gz" | tar -xz -C /tmp pnpm && \
     mv /tmp/pnpm /bin/pnpm && chmod +x /bin/pnpm && \
     # pnpm end
-    echo -n $'#!/bin/bash\n\
-export PATH="$INSTALL_DIR:$PATH"\n\
-eval "$(fnm env)"\n\
-' >> /etc/profile && \
     echo -n $'#!/usr/bin/env sh\n\
 export PATH="$PATH:$FNM_MULTISHELL_PATH"\n\
 if [ -n "$REGISTRY" ]; then\n\
