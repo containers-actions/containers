@@ -4,7 +4,7 @@ SHELL ["/bin/bash", "-o", "errexit", "-o", "nounset", "-o", "pipefail", "-c"]
 
 ENV LANG=C.UTF-8 \
     LC_ALL=C.UTF-8 \
-    LIBREOFFICE_VERSION="4:25.2.3-2+deb13u8" \
+    LIBREOFFICE_VERSION="4:25.2.3-2+deb13u9" \
     JAVA_TOOL_OPTIONS="-Dsun.jnu.encoding=UTF-8 -Dfile.encoding=UTF-8 -Duser.timezone=Asia/Shanghai"
 
 COPY fonts/* /usr/share/fonts/chinese/
